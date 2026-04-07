@@ -7,9 +7,6 @@ import { initializeApp, getApps } from "firebase/app"
 import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import { db } from "@/app/LoginPage/Firebase"
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-const db = getFirestore(app)
-
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
 const SHIFT_COLORS = {
