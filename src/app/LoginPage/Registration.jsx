@@ -1,10 +1,8 @@
-
-
 "use client"
 import { useEffect, useState } from "react"
 import "./style.css"
 import { auth, database } from "./Firebase"
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth"
+import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { ref, set } from "firebase/database"
 
 export default function Registration() {
@@ -12,16 +10,12 @@ export default function Registration() {
   const [panelActive, setPanelActive] = useState(false)
   const [user, setUser] = useState(null)
 
-  // Sign In states
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
 
-  // Sign Up states
   const [regName, setRegName] = useState("")
   const [regEmail, setRegEmail] = useState("")
   const [regPassword, setRegPassword] = useState("")
-  
-  
 
   const [loading, setLoading] = useState(false)
 
@@ -40,7 +34,6 @@ export default function Registration() {
   const handleLogin = async (e) => {
     e.preventDefault()
     if (!loginEmail || !loginPassword) return alert("Please fill email & password")
-
     try {
       setLoading(true)
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
@@ -55,24 +48,25 @@ export default function Registration() {
 
   const handleRegister = async (e) => {
     e.preventDefault()
-
-    if (!regEmail || !regPassword) {
-      return alert("Please fill: email, password")
-    }
-
+    if (!regEmail || !regPassword) return alert("Please fill: email, password")
     try {
       setLoading(true)
 
-      await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+      // ✅ إنشاء الحساب
+      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
 
-      const data = {
+      // ✅ حفظ الاسم في Firebase Auth
+      await updateProfile(userCredential.user, {
+        displayName: regName
+      })
+
+      // ✅ حفظ البيانات في Database
+      await set(ref(database, "users/" + userCredential.user.uid), {
         fullName: regName,
-        email: regEmail, 
-      }
+        email: regEmail,
+      })
 
-      await set(ref(database, "users/" + regName), data)
-
-      alert("Account created + data saved ")
+      alert("Account created successfully!")
       setPanelActive(false)
     } catch (err) {
       alert(err?.message || "Register failed")
@@ -81,11 +75,9 @@ export default function Registration() {
     }
   }
 
-  
   if (user) {
     return (
       <div className="page">
-       
         <div className="auth-wrapper" style={{ maxWidth: 650, minHeight: 350 }}>
           <div style={{ width: "100%", padding: 40, textAlign: "center" }}>
             <h1 style={{ marginBottom: 10 }}>Welcome</h1>
@@ -100,8 +92,6 @@ export default function Registration() {
   }
 
   return (
-  
-
     <div className="page">
       <div className={`auth-wrapper ${panelActive ? "panel-active" : ""}`}>
 
@@ -109,41 +99,24 @@ export default function Registration() {
         <div className="auth-form-box register-form-box">
           <form onSubmit={handleRegister}>
             <h1>Create Account</h1>
-
             <div className="social-links">
-              <a 
-                 href="https://www.facebook.com/" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 aria-label="Facebook"
-              ><b className="fab fa-facebook-f">f</b>
-            </a>
-              <a href="https://accounts.google.com/v3/signin/accountchooser?continue=http%3A%2F%2Fsupport.google.com%2Fmail%2Fanswer%2F56256%3Fhl%3Den&dsh=S-635138899%3A1774976037536408&ec=GAZAdQ&hl=en&passive=true&sjid=14372261111710507794-EU&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=AT1y2_V5btrIe6bYNvP5VagB0cqOeq0Qj_FOqtZVKKGP3nHS6cYAYWp861poeh5XDaOsnRRB0QcrYw" 
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Gmail">
-                 <b className="fab fa-google">g</b> 
-            </a>
-
-             <a 
-                 href="https://www.linkedin.com/" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 aria-label="LinkedIn"
-              ><b className="fab fa-linkedin-in">in</b>
-            </a>
-
+              <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <b className="fab fa-facebook-f">f</b>
+              </a>
+              <a href="https://accounts.google.com" target="_blank" rel="noopener noreferrer" aria-label="Gmail">
+                <b className="fab fa-google">g</b>
+              </a>
+              <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <b className="fab fa-linkedin-in">in</b>
+              </a>
             </div>
-
             <span>or use your email for registration</span>
-
             <input
               type="text"
               placeholder="Full Name"
               value={regName}
               onChange={(e) => setRegName(e.target.value)}
             />
-
             <input
               type="email"
               placeholder="Email Address"
@@ -151,7 +124,6 @@ export default function Registration() {
               onChange={(e) => setRegEmail(e.target.value)}
               required
             />
-
             <input
               type="password"
               placeholder="Password"
@@ -159,17 +131,12 @@ export default function Registration() {
               onChange={(e) => setRegPassword(e.target.value)}
               required
             />
-
-
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign Up"}
             </button>
-
             <div className="mobile-switch">
               <p>Already have an account?</p>
-              <button type="button" onClick={() => setPanelActive(false)}>
-                Sign In
-              </button>
+              <button type="button" onClick={() => setPanelActive(false)}>Sign In</button>
             </div>
           </form>
         </div>
@@ -178,33 +145,18 @@ export default function Registration() {
         <div className="auth-form-box login-form-box">
           <form onSubmit={handleLogin}>
             <h1>Sign In</h1>
-
             <div className="social-links">
-              <a 
-                 href="https://www.facebook.com/" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 aria-label="Facebook">
-              <b className="fab fa-facebook-f">f</b>
-            </a>
-
-              <a href="https://accounts.google.com/v3/signin/accountchooser?continue=http%3A%2F%2Fsupport.google.com%2Fmail%2Fanswer%2F56256%3Fhl%3Den&dsh=S-635138899%3A1774976037536408&ec=GAZAdQ&hl=en&passive=true&sjid=14372261111710507794-EU&flowName=GlifWebSignIn&flowEntry=ServiceLogin&ifkv=AT1y2_V5btrIe6bYNvP5VagB0cqOeq0Qj_FOqtZVKKGP3nHS6cYAYWp861poeh5XDaOsnRRB0QcrYw" 
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Gmail">
-                 <b className="fab fa-google">g</b> 
-            </a>
-              <a 
-                 href="https://www.linkedin.com/" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 aria-label="LinkedIn"
-              ><b className="fab fa-linkedin-in">in</b>
-            </a>
+              <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <b className="fab fa-facebook-f">f</b>
+              </a>
+              <a href="https://accounts.google.com" target="_blank" rel="noopener noreferrer" aria-label="Gmail">
+                <b className="fab fa-google">g</b>
+              </a>
+              <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <b className="fab fa-linkedin-in">in</b>
+              </a>
             </div>
-
             <span>Use your account</span>
-
             <input
               type="email"
               placeholder="Email Address"
@@ -212,7 +164,6 @@ export default function Registration() {
               onChange={(e) => setLoginEmail(e.target.value)}
               required
             />
-
             <input
               type="password"
               placeholder="Password"
@@ -220,20 +171,13 @@ export default function Registration() {
               onChange={(e) => setLoginPassword(e.target.value)}
               required
             />
-
-            <a href="#" onClick={(e) => e.preventDefault()}>
-              Forgot your password?
-            </a>
-
+            <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign In"}
             </button>
-
             <div className="mobile-switch">
               <p>Don&apos;t have an account?</p>
-              <button type="button" onClick={() => setPanelActive(true)}>
-                Sign Up
-              </button>
+              <button type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </form>
         </div>
@@ -241,38 +185,22 @@ export default function Registration() {
         {/* SLIDE PANEL */}
         <div className="slide-panel-wrapper">
           <div className="slide-panel">
-
             <div className="panel-content panel-content-left">
               <b><h2>Welcome Back!</h2></b>
               <p>Stay connected by logging in with your credentials and continue your experience</p>
-              <button
-                className="transparent-btn"
-                type="button"
-                onClick={() => setPanelActive(false)}
-              >
-                Sign In
-              </button>
+              <button className="transparent-btn" type="button" onClick={() => setPanelActive(false)}>Sign In</button>
             </div>
-
             <div className="panel-content panel-content-right">
               <b><h2>Hey There!</h2></b>
               <p>Begin your amazing journey by creating an account with us today</p>
-              <button
-                className="transparent-btn"
-                type="button"
-                onClick={() => setPanelActive(true)}
-              >
-                Sign Up
-              </button>
+              <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
-
           </div>
         </div>
       </div>
       <p className="made-by">
-           <b> made by<strong>  hamza_abo_said</strong></b> 
-</p>
- 
+        <b>made by<strong> hamza_abo_said</strong></b>
+      </p>
     </div>
   )
 }

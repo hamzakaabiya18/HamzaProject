@@ -5,7 +5,8 @@ import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDoll
 import { BsPencilSquare } from "react-icons/bs"
 import { HiTrendingUp, HiPlus, HiChevronRight } from "react-icons/hi"
 import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
-import { db } from "@/app/LoginPage/Firebase"
+import { db, auth } from "@/app/LoginPage/Firebase"
+import { onAuthStateChanged } from "firebase/auth"
 import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
@@ -14,7 +15,6 @@ import {
 
 const SETTINGS_KEY = "shiftmanager_settings"
 
-// loadSettings with defaults for hourlyRate and nightMultiplier
 const loadSettings = () => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
@@ -40,7 +40,6 @@ const calculateHours = (start, end, breakMin = 0) => {
   return Math.max(0, h - breakMin / 60)
 }
 
-// Calculates pay with nightMultiplier app if shift type is "night"
 const calculatePay = (shift, hourlyRate, nightMultiplier) => {
   const hours = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
   const multiplier = shift.shiftType === "night" ? nightMultiplier : 1
@@ -89,6 +88,8 @@ export default function HomeScreen() {
   const [hourlyRate, setHourlyRate] = useState(50)
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
   const [showPie, setShowPie] = useState(false)
+  // ✅ اسم المستخدم من Firebase Auth
+  const [userName, setUserName] = useState("")
 
   const fetchShifts = async () => {
     try {
@@ -110,13 +111,23 @@ export default function HomeScreen() {
     fetchShifts()
     refreshSettings()
 
-    // Updates data and settings every time you return to the page
+    // ✅ يقرأ اسم المستخدم من Firebase Auth
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserName(user.displayName || user.email || "")
+      }
+    })
+
     const handleFocus = () => {
       fetchShifts()
       refreshSettings()
     }
     window.addEventListener("focus", handleFocus)
-    return () => window.removeEventListener("focus", handleFocus)
+
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      unsub()
+    }
   }, [])
 
   const now = new Date()
@@ -128,15 +139,11 @@ export default function HomeScreen() {
   const startOfWeekStr = startOfWeek.toISOString().split("T")[0]
   const endOfWeekStr = new Date(startOfWeek.getTime() + 6 * 86400000).toISOString().split("T")[0]
   const weekShifts = shifts.filter(s => s.date >= startOfWeekStr && s.date <= endOfWeekStr)
-
-  //    يحسب weekPay مع nightMultiplier
   const weekHours = weekShifts.reduce((acc, s) => acc + calculateHours(s.startTime, s.endTime, s.breakDuration || 0), 0)
   const weekPay   = weekShifts.reduce((acc, s) => acc + calculatePay(s, hourlyRate, nightMultiplier), 0)
 
   const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
   const monthShifts = shifts.filter(s => s.date.startsWith(monthStr))
-
-  //  يحسب monthPay مع nightMultiplier
   const monthHours = monthShifts.reduce((acc, s) => acc + calculateHours(s.startTime, s.endTime, s.breakDuration || 0), 0)
   const monthPay   = monthShifts.reduce((acc, s) => acc + calculatePay(s, hourlyRate, nightMultiplier), 0)
 
@@ -146,7 +153,6 @@ export default function HomeScreen() {
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5)
 
-  //  chartData with nightMultiplier
   const chartData = (() => {
     const grouped = {}
     shifts
@@ -166,7 +172,6 @@ export default function HomeScreen() {
     return Object.values(grouped).sort((a, b) => a.rawDate.localeCompare(b.rawDate))
   })()
 
-  //  Pie Chart
   const shiftTypeCounts = { morning: 0, evening: 0, night: 0, custom: 0 }
   shifts.forEach(s => { if (shiftTypeCounts[s.shiftType] !== undefined) shiftTypeCounts[s.shiftType]++ })
   const total = shifts.length || 1
@@ -191,7 +196,10 @@ export default function HomeScreen() {
       {/* Header */}
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
-        <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "right" }}>חמזה אבו סעייד</h1>
+        {/* ✅ اسم المستخدم الحقيقي */}
+        <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "right" }}>
+          {userName || "..."}
+        </h1>
         <p style={{ color: "#9ca3af", fontSize: "13px", marginBottom: "20px" }}>
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </p>
@@ -219,14 +227,11 @@ export default function HomeScreen() {
               </p>
             </div>
             <div style={{ textAlign: "right" }}>
-              {/* Today's Pay */}
               <p style={{ fontSize: "20px", fontWeight: "800", marginBottom: "4px" }}>
                 ₪{calculatePay(todayShift, hourlyRate, nightMultiplier).toFixed(0)}
               </p>
               {todayShift.shiftType === "night" && (
-                <p style={{ fontSize: "11px", opacity: 0.7, marginBottom: "4px" }}>
-                  🌙 ×{nightMultiplier}
-                </p>
+                <p style={{ fontSize: "11px", opacity: 0.7, marginBottom: "4px" }}>🌙 ×{nightMultiplier}</p>
               )}
               <div style={{ backgroundColor: "rgba(255,255,255,0.15)", padding: "8px", borderRadius: "10px", display: "inline-flex" }}>
                 <BsPencilSquare size={16} color="white" />
@@ -282,7 +287,6 @@ export default function HomeScreen() {
             <h3 style={{ fontSize: "16px", fontWeight: "600", color: "white" }}>📊 Earnings Overview</h3>
             <span style={{ color: "#9ca3af", fontSize: "12px" }}>Last 30 days</span>
           </div>
-
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
@@ -310,7 +314,6 @@ export default function HomeScreen() {
               <p style={{ color: "#6b7280", fontSize: "14px" }}>No data yet — add shifts to see your chart</p>
             </div>
           )}
-
           <div onClick={() => setShowPie(!showPie)} style={{
             marginTop: "16px", display: "flex", alignItems: "center", justifyContent: "center",
             gap: "8px", cursor: "pointer", padding: "10px",
@@ -326,7 +329,7 @@ export default function HomeScreen() {
         {/* Pie Chart */}
         {showPie && (
           <div style={{ backgroundColor: "#1c2132", borderRadius: "20px", padding: "20px", marginBottom: "20px", border: "1px solid #2a2f3e" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "white", marginBottom: "4px" }}>Shift Breakdown</h3>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "white", marginBottom: "4px" }}>🥧 Shift Breakdown</h3>
             <p style={{ color: "#9ca3af", fontSize: "12px", marginBottom: "16px" }}>Distribution by shift type</p>
             {pieData.length > 0 ? (
               <>
@@ -384,7 +387,6 @@ export default function HomeScreen() {
                     </p>
                     <p style={{ color: "#9ca3af", fontSize: "12px" }}>
                       {shift.startTime} - {shift.endTime} · {hours.toFixed(1)}h
-                      {/* ✅ يعرض نسبة الليل */}
                       {isNight && <span style={{ color: "#3B82F6", marginLeft: "6px" }}>🌙 ×{nightMultiplier}</span>}
                     </p>
                   </div>
@@ -420,7 +422,6 @@ export default function HomeScreen() {
             </div>
             <HiChevronRight size={20} color="white" />
           </div>
-
           <div onClick={() => router.push("/ShiftManagerApp/Tabs/Salary")} style={{
             backgroundColor: "#1c2132", borderRadius: "12px", padding: "16px",
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -432,7 +433,6 @@ export default function HomeScreen() {
             </div>
             <HiChevronRight size={20} color="#6b7280" />
           </div>
-
           <div onClick={() => router.push("/ShiftManagerApp/Tabs/Calendar")} style={{
             backgroundColor: "#1c2132", borderRadius: "12px", padding: "16px",
             display: "flex", alignItems: "center", justifyContent: "space-between",
