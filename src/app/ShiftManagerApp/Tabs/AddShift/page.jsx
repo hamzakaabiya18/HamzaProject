@@ -1,20 +1,9 @@
 "use client"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { initializeApp, getApps } from "firebase/app"
-import { getFirestore, collection, addDoc, doc, updateDoc } from "firebase/firestore"
+import { db } from "@/app/LoginPage/Firebase"
+import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDlfCcZbAcgNx-FWuKhzazrLqeCkqXnMRo",
-  authDomain: "hamzafirebase.firebaseapp.com",
-  projectId: "hamzafirebase",
-  storageBucket: "hamzafirebase.firebasestorage.app",
-  messagingSenderId: "996678474722",
-  appId: "1:996678474722:web:e2e9b138658ed96f0a37bb"
-}
-
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
-const db = getFirestore(app)
 
 const SETTINGS_KEY = "shiftmanager_settings"
 

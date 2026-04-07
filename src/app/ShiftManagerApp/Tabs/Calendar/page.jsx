@@ -4,16 +4,8 @@ import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDoll
 import { HiPlus } from "react-icons/hi"
 import { useState, useMemo, useEffect } from "react"
 import { initializeApp, getApps } from "firebase/app"
-import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore"
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDlfCcZbAcgNx-FWuKhzazrLqeCkqXnMRo",
-  authDomain: "hamzafirebase.firebaseapp.com",
-  projectId: "hamzafirebase",
-  storageBucket: "hamzafirebase.firebasestorage.app",
-  messagingSenderId: "996678474722",
-  appId: "1:996678474722:web:e2e9b138658ed96f0a37bb"
-}
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
+import { db } from "@/app/LoginPage/Firebase"
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 const db = getFirestore(app)
