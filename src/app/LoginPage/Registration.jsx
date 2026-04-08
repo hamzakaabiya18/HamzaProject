@@ -167,7 +167,7 @@ export default function Registration() {
             <span>Use your account</span>
             <input
               type="email"
-              placeholder="Email Address or Username"
+              placeholder="Email Address"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               required
@@ -184,27 +184,53 @@ export default function Registration() {
               {loading ? "Loading..." : "Sign In"}
             </button>
             <div className="mobile-switch">
-              <p>Don&apos;t have an account?</p>
               <button type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </form>
         </div>
 
         {/* SLIDE PANEL */}
-        <div className="slide-panel-wrapper">
-          <div className="slide-panel">
-            <div className="panel-content panel-content-left">
-              <b><h2>Welcome Back!</h2></b>
-              <p>Stay connected by logging in with your credentials and continue your experience</p>
-              <button className="transparent-btn" type="button" onClick={() => setPanelActive(false)}>Sign In</button>
-            </div>
-            <div className="panel-content panel-content-right">
-              <b><h2>Hey There!</h2></b>
-              <p>Begin your amazing journey by creating an account with us today</p>
-              <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
-            </div>
-          </div>
-        </div>
+       <div className="slide-panel-wrapper">
+  <div className="slide-panel">
+
+    <div className="panel-content panel-content-left">
+      <h2><b>Hey There!</b></h2>
+      <p>
+        Join workers who manage<br/>
+        their shifts smarter.<br/>
+        Sign up and take control<br/>
+        of your work life today.
+      </p>
+      <button
+        className="transparent-btn"
+        type="button"
+        onClick={() => setPanelActive(false)}
+      >
+        Sign In
+      </button>
+    </div>
+
+    <div className="panel-content panel-content-right">
+      <h2><b>Welcome Back!</b></h2>
+      <p>
+        Your shifts are waiting.<br/>
+        Track hours · Calculate salary<br/>
+        Stay on top of your schedule.
+      </p>
+      <p>
+        <strong>Don't have an account? Click below</strong>
+      </p>
+      <button
+        className="transparent-btn" 
+        type="button"
+        onClick={() => setPanelActive(true)}
+      >
+        Sign Up
+      </button>
+    </div>
+
+  </div>
+</div>
       </div>
       <p className="made-by">
         <b>made by<strong> hamza_abo_said</strong></b>
