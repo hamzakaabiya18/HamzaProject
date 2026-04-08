@@ -1,5 +1,5 @@
 # HamzaProject
-# 🕐 Shift Manager App
+# Shift Manager App
 
 A full-stack web application built with Next.js and Firebase for managing work shifts, tracking hours, and calculating salary — designed specifically for the Israeli labor market.
 
@@ -42,4 +42,46 @@ A full-stack web application built with Next.js and Firebase for managing work s
 
 ---
 
-## Project Structure
+# Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=
+```
+
+---
+
+# Getting Started
+
+```bash
+# Install dependencies
+npm install
+npm firebase install
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+---
+
+# Developer
+
+**Hamza Abo Said**
+
+-  Information Systems & Business Administration — Ono Academic College
+-  Help Desk Tier 1 —
+
+# License
+This project is for portfolio and demonstration purposes.
+
+
+*Built with ❤️ by Hamza Abo Said*

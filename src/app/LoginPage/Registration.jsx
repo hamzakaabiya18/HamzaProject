@@ -57,18 +57,18 @@ export default function Registration() {
     try {
       setLoading(true)
 
-      // ✅ إنشاء الحساب
+      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
 
-      // ✅ حفظ الاسم في Firebase Auth
+      // Save display name in Firebase Auth profile     
       await updateProfile(userCredential.user, {
         displayName: regName
       })
 
-      // ✅ حفظ الاسم في localStorage
+      // Save display name in localStorage for later use
       localStorage.setItem("userName", regName)
 
-      // ✅ حفظ البيانات في Database
+      // Save user info in Realtime Database
       await set(ref(database, "users/" + userCredential.user.uid), {
         fullName: regName,
         email: regEmail,
