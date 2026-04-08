@@ -251,7 +251,7 @@ function AddShiftForm() {
         }}>✕</div>
         <div style={{ textAlign: "center" }}>
           <h2 style={{ fontSize: "18px", fontWeight: "700" }}>
-            {isEditMode ? "✏️ Edit Shift" : "Add Shift"}
+            {isEditMode ? "Edit Shift" : "Add Shift"}
           </h2>
           {isEditMode && <p style={{ color: "#6b7280", fontSize: "11px", marginTop: "2px" }}>Editing existing shift</p>}
         </div>
@@ -430,7 +430,7 @@ function AddShiftForm() {
           fontWeight: "700", cursor: saving ? "not-allowed" : "pointer",
           fontSize: "16px", boxShadow: "0 4px 15px rgba(59,130,246,0.4)", transition: "all 0.2s"
         }}>
-          {saving ? "Saving..." : isEditMode ? "✏️ Update Shift" : "Add Shift"}
+          {saving ? "Saving..." : isEditMode ? "Update Shift" : "Add Shift"}
         </button>
 
       </div>
