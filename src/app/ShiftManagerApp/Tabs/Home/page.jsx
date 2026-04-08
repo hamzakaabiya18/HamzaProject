@@ -8,8 +8,6 @@ import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
-import { onAuthStateChanged } from "firebase/auth"
-import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell
@@ -214,7 +212,7 @@ export default function HomeScreen() {
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
         {/* ✅ الاسم الكامل من localStorage */}
-        <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "right" }}>
+        <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "left" }}>
           {userName || "..."}
         </h1>
         <p style={{ color: "#9ca3af", fontSize: "13px", marginBottom: "20px" }}>
