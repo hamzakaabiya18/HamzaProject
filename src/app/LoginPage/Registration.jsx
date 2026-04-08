@@ -167,7 +167,7 @@ export default function Registration() {
             <span>Use your account</span>
             <input
               type="email"
-              placeholder="Email Address"
+              placeholder="Email Address or Username"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               required
