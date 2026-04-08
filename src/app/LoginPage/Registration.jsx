@@ -28,6 +28,7 @@ export default function Registration() {
 
   const handleSignOut = async () => {
     await signOut(auth)
+    localStorage.removeItem("userName")
     alert("User signed out!")
   }
 
@@ -36,8 +37,12 @@ export default function Registration() {
     if (!loginEmail || !loginPassword) return alert("Please fill email & password")
     try {
       setLoading(true)
-      await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
-      alert("Logged in successfully")
+      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
+
+      // ✅ عند تسجيل الدخول نقرأ الاسم من Firebase ونحفظه
+      const displayName = userCredential.user.displayName
+      if (displayName) localStorage.setItem("userName", displayName)
+
       window.location.href = "/ShiftManagerApp/Tabs/Home"
     } catch (err) {
       alert(err?.message || "Login failed")
@@ -59,6 +64,9 @@ export default function Registration() {
       await updateProfile(userCredential.user, {
         displayName: regName
       })
+
+      // ✅ حفظ الاسم في localStorage
+      localStorage.setItem("userName", regName)
 
       // ✅ حفظ البيانات في Database
       await set(ref(database, "users/" + userCredential.user.uid), {
