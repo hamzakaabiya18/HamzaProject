@@ -73,7 +73,7 @@ npm run build
 
 ---
 
-# Developer
+# Manager
 
 **Hamza Abo Said**
 
