@@ -5,9 +5,9 @@ import {
   AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList,
   AiOutlineDollar, AiOutlineSetting
 } from "react-icons/ai"
-import { db } from "@/app/LoginPage/Firebase"
-import { collection, getDocs, query, orderBy } from "firebase/firestore"
-
+import { db, auth } from "@/app/LoginPage/Firebase"
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
+import { onAuthStateChanged } from "firebase/auth"
 
 const SETTINGS_KEY = "shiftmanager_settings"
 
@@ -70,29 +70,30 @@ export default function SalaryScreen() {
   ]
 
   useEffect(() => {
-    const s = loadSettings()
-    setHourlyRate(s.hourlyRate)
-    setNightMultiplier(s.nightMultiplier)
+  const s = loadSettings()
+  setHourlyRate(s.hourlyRate)
+  setNightMultiplier(s.nightMultiplier)
 
-    const fetchShifts = async () => {
+  const unsub = onAuthStateChanged(auth, async (user) => {
+    if (user) {
       try {
-        const q = query(collection(db, "shifts"), orderBy("date", "desc"))
+        const q = query(
+          collection(db, "shifts"),
+          where("userId", "==", user.uid),
+          orderBy("date", "desc")
+        )
         const snapshot = await getDocs(q)
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         setShifts(data)
       } catch (e) { console.error(e) }
       setLoading(false)
+    } else {
+      router.push("/LoginPage")
     }
-    fetchShifts()
+  })
+  return () => unsub()
+}, [])
 
-    const handleFocus = () => {
-      const s = loadSettings()
-      setHourlyRate(s.hourlyRate)
-      setNightMultiplier(s.nightMultiplier)
-    }
-    window.addEventListener("focus", handleFocus)
-    return () => window.removeEventListener("focus", handleFocus)
-  }, [])
 
   const monthlyData = {}
   shifts.forEach(shift => {

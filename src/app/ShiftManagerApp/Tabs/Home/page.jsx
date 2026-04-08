@@ -7,6 +7,8 @@ import { HiTrendingUp, HiPlus, HiChevronRight } from "react-icons/hi"
 import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { onAuthStateChanged } from "firebase/auth"
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
+import { onAuthStateChanged } from "firebase/auth"
 import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
@@ -88,18 +90,24 @@ export default function HomeScreen() {
   const [hourlyRate, setHourlyRate] = useState(50)
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
   const [showPie, setShowPie] = useState(false)
-  // ✅ اسم المستخدم
+  const [currentUser, setCurrentUser] = useState(null)
+  // User name state to hold the display name of the user
   const [userName, setUserName] = useState("")
 
-  const fetchShifts = async () => {
-    try {
-      const q = query(collection(db, "shifts"), orderBy("date", "desc"))
-      const snapshot = await getDocs(q)
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-      setShifts(data)
-    } catch (e) { console.error(e) }
-    setLoading(false)
-  }
+  const fetchShifts = async (uid) => {
+  if (!uid) return
+  try {
+    const q = query(
+      collection(db, "shifts"),
+      where("userId", "==", uid),
+      orderBy("date", "desc")
+    )
+    const snapshot = await getDocs(q)
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    setShifts(data)
+  } catch (e) { console.error(e) }
+  setLoading(false)
+}
 
   const refreshSettings = () => {
     const s = loadSettings()
@@ -108,33 +116,36 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
-    fetchShifts()
-    refreshSettings()
-
+  refreshSettings()
     // ✅ يقرأ الاسم من localStorage أولاً
-    const savedName = localStorage.getItem("userName")
-    if (savedName) {
-      setUserName(savedName)
-    } else {
-      // إذا مو موجود يقرأ من Firebase Auth
-      const unsub = onAuthStateChanged(auth, (user) => {
-        if (user?.displayName) {
-          setUserName(user.displayName)
-          localStorage.setItem("userName", user.displayName)
-        } else if (user?.email) {
-          setUserName(user.email)
-        }
-      })
-      return () => unsub()
-    }
 
-    const handleFocus = () => {
-      fetchShifts()
-      refreshSettings()
+  const savedName = localStorage.getItem("userName")
+  if (savedName) setUserName(savedName)
+
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setCurrentUser(user)
+      fetchShifts(user.uid)
+      if (!savedName && user.displayName) {
+        setUserName(user.displayName)
+        localStorage.setItem("userName", user.displayName)
+      }
+    } else {
+      router.push("/LoginPage")
     }
-    window.addEventListener("focus", handleFocus)
-    return () => window.removeEventListener("focus", handleFocus)
-  }, [])
+  })
+
+  const handleFocus = () => {
+    refreshSettings()
+    if (currentUser) fetchShifts(currentUser.uid)
+  }
+  window.addEventListener("focus", handleFocus)
+  return () => {
+    window.removeEventListener("focus", handleFocus)
+    unsub()
+  }
+}, [])
+
 
   const now = new Date()
   const today = now.toISOString().split("T")[0]

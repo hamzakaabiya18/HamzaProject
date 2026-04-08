@@ -1,13 +1,12 @@
 "use client"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { db } from "@/app/LoginPage/Firebase"
+import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
-
+import { onAuthStateChanged } from "firebase/auth"
 
 const SETTINGS_KEY = "shiftmanager_settings"
 
-// Reads all settings from localStorage, with defaults if not set or on error  
 const loadSettings = () => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
@@ -148,6 +147,7 @@ function AddShiftForm() {
 
   const [hourlyRate,      setHourlyRate]      = useState(50)
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
+  const [currentUser,     setCurrentUser]     = useState(null)
   const today = new Date()
 
   const initDate  = searchParams.get("date") || ""
@@ -168,6 +168,13 @@ function AddShiftForm() {
     const s = loadSettings()
     setHourlyRate(s.hourlyRate)
     setNightMultiplier(s.nightMultiplier)
+
+    // ✅ يقرأ المستخدم الحالي
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) setCurrentUser(user)
+      else router.push("/LoginPage")
+    })
+    return () => unsub()
   }, [])
 
   const handleCalendarSelect = (d, m, y) => {
@@ -186,10 +193,8 @@ function AddShiftForm() {
   }
 
   const hours = calculateHours(startTime, endTime, parseInt(breakDuration) || 0)
-
-  // Preview with night multiplier applied
-  const multiplier  = selectedType.value === "night" ? nightMultiplier : 1
-  const previewPay  = hours * hourlyRate * multiplier
+  const multiplier = selectedType.value === "night" ? nightMultiplier : 1
+  const previewPay = hours * hourlyRate * multiplier
 
   const selectedDateLabel = (() => {
     try {
@@ -200,6 +205,7 @@ function AddShiftForm() {
   })()
 
   const handleSave = async () => {
+    if (!currentUser) return alert("Please login first.")
     const dateStr = `${dateYear}-${dateMonth.padStart(2,"0")}-${dateDay.padStart(2,"0")}`
     if (isNaN(new Date(dateStr).getTime())) return alert("Invalid date.")
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
@@ -209,10 +215,14 @@ function AddShiftForm() {
     setSaving(true)
     try {
       const payload = {
-        date: dateStr, startTime, endTime,
+        date: dateStr,
+        startTime,
+        endTime,
         shiftType: selectedType.value,
         breakDuration: parseInt(breakDuration) || 0,
         notes: notes.trim() || "",
+        // ✅ نحفظ userId مع كل وردية
+        userId: currentUser.uid,
       }
       if (isEditMode) {
         await updateDoc(doc(db, "shifts", editId), { ...payload, updatedAt: new Date().toISOString() })
@@ -229,7 +239,6 @@ function AddShiftForm() {
   return (
     <div style={{ backgroundColor: "#0f1117", minHeight: "100vh", color: "white", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* Header */}
       <div style={{
         display: "flex", justifyContent: "space-between", alignItems: "center",
         padding: "20px 20px 16px", borderBottom: "1px solid #1f2937",
@@ -276,7 +285,6 @@ function AddShiftForm() {
               )
             })}
           </div>
-          {/* Night Shift Alert */}
           {isNight && (
             <div style={{
               marginTop: "12px", padding: "10px 14px",
@@ -286,7 +294,7 @@ function AddShiftForm() {
             }}>
               <span style={{ fontSize: "14px" }}>🌙</span>
               <p style={{ color: "#93C5FD", fontSize: "12px", fontWeight: "600" }}>
-                Night shift rate applied: ×{nightMultiplier} ({Math.round(nightMultiplier * 100)}%)
+                Night shift rate: ×{nightMultiplier} ({Math.round(nightMultiplier * 100)}%)
               </p>
             </div>
           )}
@@ -316,7 +324,6 @@ function AddShiftForm() {
               </div>
             ))}
           </div>
-
           <div onClick={() => setShowCalendar(!showCalendar)} style={{
             marginTop: "12px", display: "flex", alignItems: "center", justifyContent: "space-between",
             backgroundColor: "#1c2132", borderRadius: "12px", padding: "12px 16px",
@@ -334,7 +341,6 @@ function AddShiftForm() {
             </div>
             <span style={{ color: "#3B82F6", fontSize: "16px", transform: showCalendar ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.3s" }}>⌄</span>
           </div>
-
           {showCalendar && (
             <MiniCalendar day={dateDay} month={dateMonth} year={dateYear} onSelect={handleCalendarSelect} />
           )}
@@ -364,7 +370,7 @@ function AddShiftForm() {
           </div>
         </div>
 
-        {/* Break Duration */}
+        {/* Break */}
         <div>
           <p style={{ color: "#9CA3AF", fontSize: "12px", fontWeight: "600", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "12px" }}>Break Duration (minutes)</p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "8px" }}>
@@ -380,7 +386,7 @@ function AddShiftForm() {
           </div>
         </div>
 
-        {/* Preview with night multiplier applied */}
+        {/* Preview */}
         {startTime && endTime && (
           <div style={{
             backgroundColor: "#1c2132", borderRadius: "14px", padding: "16px 20px",
@@ -418,7 +424,6 @@ function AddShiftForm() {
           />
         </div>
 
-        {/* Save Button */}
         <button onClick={handleSave} disabled={saving} style={{
           width: "100%", backgroundColor: "#3B82F6", border: "none",
           borderRadius: "14px", padding: "18px", color: "white",

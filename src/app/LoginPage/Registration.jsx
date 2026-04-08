@@ -39,7 +39,7 @@ export default function Registration() {
       setLoading(true)
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
 
-      // ✅ عند تسجيل الدخول نقرأ الاسم من Firebase ونحفظه
+      // 
       const displayName = userCredential.user.displayName
       if (displayName) localStorage.setItem("userName", displayName)
 

@@ -4,14 +4,12 @@ import { useRouter } from "next/navigation"
 import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDollar, AiOutlineSetting } from "react-icons/ai"
 import { BsTrash, BsPencil } from "react-icons/bs"
 import { HiPlus } from "react-icons/hi"
-import { db } from "@/app/LoginPage/Firebase"
-import { collection, getDocs, deleteDoc, doc, query, orderBy } from "firebase/firestore"
-
-
+import { db, auth } from "@/app/LoginPage/Firebase"
+import { collection, getDocs, deleteDoc, doc, query, orderBy, where } from "firebase/firestore"
+import { onAuthStateChanged } from "firebase/auth"
 
 const SETTINGS_KEY = "shiftmanager_settings"
 
-// loadSettings with defaults
 const loadSettings = () => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
@@ -37,7 +35,6 @@ const calculateHours = (start, end, breakMin = 0) => {
   return Math.max(0, h - breakMin / 60)
 }
 
-// calculatePay with nightMultiplier
 const calculatePay = (shift, hourlyRate, nightMultiplier) => {
   const hours = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
   const multiplier = shift.shiftType === "night" ? nightMultiplier : 1
@@ -51,6 +48,7 @@ export default function ShiftsScreen() {
   const [filter, setFilter] = useState("all")
   const [hourlyRate, setHourlyRate] = useState(50)
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
+  const [currentUser, setCurrentUser] = useState(null)
 
   const tabs = [
     { icon: <AiOutlineHome size={22}/>, label: "Home", path: "/ShiftManagerApp/Tabs/Home" },
@@ -60,9 +58,15 @@ export default function ShiftsScreen() {
     { icon: <AiOutlineSetting size={22}/>, label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
   ]
 
-  const fetchShifts = async () => {
+  // ✅ يجلب فقط ورديات المستخدم الحالي
+  const fetchShifts = async (uid) => {
+    if (!uid) return
     try {
-      const q = query(collection(db, "shifts"), orderBy("date", "desc"))
+      const q = query(
+        collection(db, "shifts"),
+        where("userId", "==", uid),
+        orderBy("date", "desc")
+      )
       const snapshot = await getDocs(q)
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       setShifts(data)
@@ -77,19 +81,31 @@ export default function ShiftsScreen() {
   }
 
   useEffect(() => {
-    fetchShifts()
     refreshSettings()
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user)
+        fetchShifts(user.uid)
+      } else {
+        router.push("/LoginPage")
+      }
+    })
 
-    // Refresh shifts and settings when window regains focus
-    const handleFocus = () => { fetchShifts(); refreshSettings() }
+    const handleFocus = () => {
+      refreshSettings()
+      if (currentUser) fetchShifts(currentUser.uid)
+    }
     window.addEventListener("focus", handleFocus)
-    return () => window.removeEventListener("focus", handleFocus)
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      unsub()
+    }
   }, [])
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this shift?")) return
     await deleteDoc(doc(db, "shifts", id))
-    fetchShifts()
+    fetchShifts(currentUser.uid)
   }
 
   const handleEdit = (shift) => {
@@ -110,7 +126,6 @@ export default function ShiftsScreen() {
   return (
     <div style={{ backgroundColor: "#0f1117", minHeight: "100vh", color: "white", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* Header */}
       <div style={{ padding: "20px 16px 0px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
           <h1 style={{ fontSize: "28px", fontWeight: "700" }}>My Shifts</h1>
@@ -125,7 +140,6 @@ export default function ShiftsScreen() {
         </div>
       </div>
 
-      {/* Filter */}
       <div style={{ padding: "12px 16px", display: "flex", gap: "8px", overflowX: "auto" }}>
         {["all", "morning", "evening", "night", "custom"].map(f => (
           <div key={f} onClick={() => setFilter(f)} style={{
@@ -141,7 +155,6 @@ export default function ShiftsScreen() {
         ))}
       </div>
 
-      {/* Shifts List */}
       <div style={{ padding: "0 16px", paddingBottom: "80px" }}>
         {loading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#6b7280" }}>Loading...</div>
@@ -160,7 +173,6 @@ export default function ShiftsScreen() {
               const h       = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
               const pay     = calculatePay(shift, hourlyRate, nightMultiplier)
               const isNight = shift.shiftType === "night"
-
               return (
                 <div key={shift.id} style={{
                   backgroundColor: "#1c2132", borderRadius: "14px",
@@ -179,7 +191,6 @@ export default function ShiftsScreen() {
                         <div style={{ backgroundColor: `${color}25`, padding: "2px 10px", borderRadius: "20px" }}>
                           <span style={{ color, fontSize: "11px", fontWeight: "600", textTransform: "capitalize" }}>{shift.shiftType}</span>
                         </div>
-                        {/* Night Shift Indicator */}
                         {isNight && (
                           <div style={{ backgroundColor: "rgba(59,130,246,0.15)", padding: "2px 8px", borderRadius: "20px" }}>
                             <span style={{ color: "#93C5FD", fontSize: "11px", fontWeight: "600" }}>🌙 ×{nightMultiplier}</span>
@@ -196,17 +207,14 @@ export default function ShiftsScreen() {
                       </div>
                       {shift.notes && <p style={{ color: "#6b7280", fontSize: "12px", fontStyle: "italic", marginTop: "6px" }}>{shift.notes}</p>}
                     </div>
-
                     <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginLeft: "12px" }}>
                       <div onClick={() => handleEdit(shift)} style={{
-                        backgroundColor: "rgba(59,130,246,0.1)", padding: "8px",
-                        borderRadius: "8px", cursor: "pointer"
+                        backgroundColor: "rgba(59,130,246,0.1)", padding: "8px", borderRadius: "8px", cursor: "pointer"
                       }}>
                         <BsPencil size={15} color="#3B82F6" />
                       </div>
                       <div onClick={() => handleDelete(shift.id)} style={{
-                        backgroundColor: "rgba(239,68,68,0.1)", padding: "8px",
-                        borderRadius: "8px", cursor: "pointer"
+                        backgroundColor: "rgba(239,68,68,0.1)", padding: "8px", borderRadius: "8px", cursor: "pointer"
                       }}>
                         <BsTrash size={15} color="#ef4444" />
                       </div>
@@ -219,7 +227,6 @@ export default function ShiftsScreen() {
         )}
       </div>
 
-      {/* Bottom Nav */}
       <div style={{
         position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#1c2132",
         display: "flex", justifyContent: "space-around", padding: "10px 0 14px", borderTop: "1px solid #2a2f3e"

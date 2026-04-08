@@ -3,9 +3,10 @@ import { useRouter } from "next/navigation"
 import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDollar, AiOutlineSetting } from "react-icons/ai"
 import { HiPlus } from "react-icons/hi"
 import { useState, useMemo, useEffect } from "react"
-import { initializeApp, getApps } from "firebase/app"
-import { collection, getDocs, query, orderBy } from "firebase/firestore"
-import { db } from "@/app/LoginPage/Firebase"
+import { db, auth } from "@/app/LoginPage/Firebase"
+import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
+import { onAuthStateChanged } from "firebase/auth"
+
 
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
@@ -94,17 +95,25 @@ export default function CalendarScreen() {
   const [hourlyRate,   setHourlyRate]   = useState(50)
 
   useEffect(() => {
-    const fetchShifts = async () => {
+  const unsub = onAuthStateChanged(auth, async (user) => {
+    if (user) {
       try {
-        const q = query(collection(db, "shifts"), orderBy("date", "desc"))
+        const q = query(
+          collection(db, "shifts"),
+          where("userId", "==", user.uid),
+          orderBy("date", "desc")
+        )
         const snapshot = await getDocs(q)
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         setShifts(data)
       } catch (e) { console.error(e) }
+    } else {
+      router.push("/LoginPage")
     }
-    fetchShifts()
-    setHourlyRate(getHourlyRate())
-  }, [])
+  })
+  setHourlyRate(getHourlyRate())
+  return () => unsub()
+}, [])
 
   const tabs = [
     { icon: <AiOutlineHome size={22}/>,             label: "Home",     path: "/ShiftManagerApp/Tabs/Home" },
