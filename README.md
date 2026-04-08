@@ -7,7 +7,7 @@ A full-stack web application built with Next.js and Firebase for managing work s
 
 ## Live Demo
 
-[View Live App](https://hamza-project.vercel.app)
+[View Live App](https://hamza-project-five.vercel.app/)
 
 ---
 
