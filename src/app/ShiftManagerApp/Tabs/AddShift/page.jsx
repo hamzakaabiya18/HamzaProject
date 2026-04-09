@@ -169,7 +169,7 @@ function AddShiftForm() {
     setHourlyRate(s.hourlyRate)
     setNightMultiplier(s.nightMultiplier)
 
-    // ✅ يقرأ المستخدم الحالي
+    //  يقرأ المستخدم الحالي
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) setCurrentUser(user)
       else router.push("/LoginPage")
@@ -221,7 +221,7 @@ function AddShiftForm() {
         shiftType: selectedType.value,
         breakDuration: parseInt(breakDuration) || 0,
         notes: notes.trim() || "",
-        // ✅ نحفظ userId مع كل وردية
+        // store user ID to associate shift with the user
         userId: currentUser.uid,
       }
       if (isEditMode) {

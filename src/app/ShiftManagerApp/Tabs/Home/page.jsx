@@ -211,7 +211,7 @@ export default function HomeScreen() {
       {/* Header */}
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
-        {/* ✅ الاسم الكامل من localStorage */}
+        {/* fullName saved in localStorage */}
         <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "left" }}>
           {userName || "..."}
         </h1>
