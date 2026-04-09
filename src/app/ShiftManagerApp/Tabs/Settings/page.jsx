@@ -8,29 +8,8 @@ import {
 import { BsTrash, BsPerson, BsClock, BsBell, BsCalendar3, BsInfoCircle, BsCheckLg, BsMoonStars } from "react-icons/bs"
 import { db } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
-
-
-
-export const SETTINGS_KEY = "shiftmanager_settings"
-
-export const defaultSettings = {
-  hourlyRate: 50,
-  overtimeRate: 1.5,
-  nightMultiplier: 1.25, 
-  calendarSync: false,
-  notifications: false,
-}
-
-export const loadSettings = () => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    return raw ? { ...defaultSettings, ...JSON.parse(raw) } : defaultSettings
-  } catch { return defaultSettings }
-}
-
-const saveSettings = (s) => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
-}
+import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
+import BottomNav from "@/components/BottomNav"
 
 export default function SettingsScreen() {
   const router = useRouter()
@@ -382,17 +361,7 @@ export default function SettingsScreen() {
       </div>
 
       {/* Bottom Nav */}
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#0a0d14",
-        display: "flex", justifyContent: "space-around", padding: "10px 0 16px", borderTop: "1px solid #1f2937"
-      }}>
-        {tabs.map((item, index) => (
-          <div key={index} onClick={() => router.push(item.path)} style={{ textAlign: "center", cursor: "pointer", padding: "4px 12px" }}>
-            <div style={{ color: item.label === "Settings" ? "#3B82F6" : "#374151", marginBottom: "3px" }}>{item.icon}</div>
-            <p style={{ fontSize: "10px", color: item.label === "Settings" ? "#3B82F6" : "#374151", fontWeight: item.label === "Settings" ? "600" : "400" }}>{item.label}</p>
-          </div>
-        ))}
-      </div>
+      <BottomNav />
     </div>
   )
 }

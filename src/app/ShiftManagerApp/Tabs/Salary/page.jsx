@@ -8,36 +8,9 @@ import {
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
+import { loadSettings, calculateHours, calculatePay } from "@/lib/shiftUtils"
+import BottomNav from "@/components/BottomNav"
 
-const SETTINGS_KEY = "shiftmanager_settings"
-
-// loadSettings with defaults
-const loadSettings = () => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    const parsed = raw ? JSON.parse(raw) : {}
-    return {
-      hourlyRate:      parsed.hourlyRate      || 50,
-      nightMultiplier: parsed.nightMultiplier || 1.25,
-    }
-  } catch { return { hourlyRate: 50, nightMultiplier: 1.25 } }
-}
-
-const calculateHours = (start, end, breakMin = 0) => {
-  if (!start || !end) return 0
-  const [sh, sm] = start.split(":").map(Number)
-  const [eh, em] = end.split(":").map(Number)
-  let h = eh - sh + (em - sm) / 60
-  if (h < 0) h += 24
-  return Math.max(0, h - breakMin / 60)
-}
-
-// calculatePay with nightMultiplier
-const calculatePay = (shift, hourlyRate, nightMultiplier) => {
-  const hours = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
-  const multiplier = shift.shiftType === "night" ? nightMultiplier : 1
-  return hours * hourlyRate * multiplier
-}
 
 const getMonthKey = (dateStr) => {
   const d = new Date(dateStr + "T00:00:00")
@@ -147,7 +120,7 @@ export default function SalaryScreen() {
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", marginBottom: "4px" }}>Rate</p>
               <p style={{ color: "white", fontWeight: "700", fontSize: "16px" }}>₪{hourlyRate}/hr</p>
             </div>
-            {/* ✅ Night rate badge */}
+            {/*  Night rate badge */}
             <div>
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", marginBottom: "4px" }}>🌙 Night</p>
               <p style={{ color: "#93C5FD", fontWeight: "700", fontSize: "16px" }}>{Math.round(nightMultiplier * 100)}%</p>
@@ -269,17 +242,7 @@ export default function SalaryScreen() {
       </div>
 
       {/* Bottom Nav */}
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#0a0d14",
-        display: "flex", justifyContent: "space-around", padding: "10px 0 16px", borderTop: "1px solid #1f2937"
-      }}>
-        {tabs.map((item, index) => (
-          <div key={index} onClick={() => router.push(item.path)} style={{ textAlign: "center", cursor: "pointer", padding: "4px 12px" }}>
-            <div style={{ color: item.label === "Salary" ? "#3B82F6" : "#374151", marginBottom: "3px" }}>{item.icon}</div>
-            <p style={{ fontSize: "10px", color: item.label === "Salary" ? "#3B82F6" : "#374151", fontWeight: item.label === "Salary" ? "600" : "400" }}>{item.label}</p>
-          </div>
-        ))}
-      </div>
+      <BottomNav />
     </div>
   )
 }

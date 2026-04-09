@@ -1,8 +1,9 @@
 "use client"
 import { useRouter } from "next/navigation"
-import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDollar, AiOutlineSetting } from "react-icons/ai"
 import { HiPlus } from "react-icons/hi"
 import { useState, useMemo, useEffect } from "react"
+import { calculateHours } from "@/lib/shiftUtils"
+import BottomNav from "@/components/BottomNav"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
@@ -68,22 +69,7 @@ const SHIFT_ICONS = {
   custom:  <SparkleIcon />,
 }
 
-const calculateHours = (start, end, breakMin = 0) => {
-  if (!start || !end) return 0
-  const [sh, sm] = start.split(":").map(Number)
-  const [eh, em] = end.split(":").map(Number)
-  let h = eh - sh + (em - sm) / 60
-  if (h < 0) h += 24
-  return Math.max(0, h - breakMin / 60)
-}
 
-const SETTINGS_KEY = "shiftmanager_settings"
-const getHourlyRate = () => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    return raw ? JSON.parse(raw).hourlyRate || 50 : 50
-  } catch { return 50 }
-}
 
 export default function CalendarScreen() {
   const router = useRouter()
@@ -111,17 +97,8 @@ export default function CalendarScreen() {
       router.push("/LoginPage")
     }
   })
-  setHourlyRate(getHourlyRate())
-  return () => unsub()
 }, [])
 
-  const tabs = [
-    { icon: <AiOutlineHome size={22}/>,             label: "Home",     path: "/ShiftManagerApp/Tabs/Home" },
-    { icon: <AiOutlineCalendar size={22}/>,         label: "Calendar", path: "/ShiftManagerApp/Tabs/Calendar" },
-    { icon: <AiOutlineUnorderedList size={22}/>,    label: "Shifts",   path: "/ShiftManagerApp/Tabs/Shifts" },
-    { icon: <AiOutlineDollar size={22}/>,           label: "Salary",   path: "/ShiftManagerApp/Tabs/Salary" },
-    { icon: <AiOutlineSetting size={22}/>,          label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
-  ]
 
   const calendarDays = useMemo(() => {
     const firstDay  = new Date(currentYear, currentMonth, 1)
@@ -322,7 +299,7 @@ export default function CalendarScreen() {
                     )}
                     {shift.notes && (
                       <p style={{ color: "#6b7280", fontSize: "12px", fontStyle: "italic", marginTop: "6px" }}>
-                        📝 {shift.notes}
+                         {shift.notes}
                       </p>
                     )}
                   </div>
@@ -334,22 +311,7 @@ export default function CalendarScreen() {
       )}
 
       {/* Bottom Nav */}
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#1c2132",
-        display: "flex", justifyContent: "space-around", padding: "10px 0 14px", borderTop: "1px solid #2a2f3e"
-      }}>
-        {tabs.map((item, index) => (
-          <div key={index} onClick={() => router.push(item.path)}
-            style={{ textAlign: "center", cursor: "pointer", padding: "4px 12px" }}>
-            <div style={{ color: item.label === "Calendar" ? "#3B82F6" : "#6b7280", marginBottom: "3px" }}>
-              {item.icon}
-            </div>
-            <p style={{ fontSize: "10px", color: item.label === "Calendar" ? "#3B82F6" : "#6b7280" }}>
-              {item.label}
-            </p>
-          </div>
-        ))}
-      </div>
+      <BottomNav />
 
     </div>
   )

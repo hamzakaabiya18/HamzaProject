@@ -4,30 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, addDoc, doc, updateDoc } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
+import { loadSettings, calculateHours } from "@/lib/shiftUtils"
 
-const SETTINGS_KEY = "shiftmanager_settings"
 
-const loadSettings = () => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    const parsed = raw ? JSON.parse(raw) : {}
-    return {
-      hourlyRate:      parsed.hourlyRate      || 50,
-      nightMultiplier: parsed.nightMultiplier || 1.25,
-    }
-  } catch { return { hourlyRate: 50, nightMultiplier: 1.25 } }
-}
-
-const calculateHours = (start, end, breakMin = 0) => {
-  if (!start || !end) return 0
-  const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-  if (!timeRegex.test(start) || !timeRegex.test(end)) return 0
-  const [sh, sm] = start.split(":").map(Number)
-  const [eh, em] = end.split(":").map(Number)
-  let h = eh - sh + (em - sm) / 60
-  if (h < 0) h += 24
-  return Math.max(0, h - breakMin / 60)
-}
 
 const SunIcon = () => (
   <svg width="28" height="28" viewBox="0 0 24 24" fill="none">

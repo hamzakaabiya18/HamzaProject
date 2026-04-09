@@ -7,39 +7,8 @@ import { HiPlus } from "react-icons/hi"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, deleteDoc, doc, query, orderBy, where } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
-
-const SETTINGS_KEY = "shiftmanager_settings"
-
-const loadSettings = () => {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
-    const parsed = raw ? JSON.parse(raw) : {}
-    return {
-      hourlyRate:      parsed.hourlyRate      || 50,
-      nightMultiplier: parsed.nightMultiplier || 1.25,
-    }
-  } catch { return { hourlyRate: 50, nightMultiplier: 1.25 } }
-}
-
-const getShiftTypeColor = (type) => {
-  const colors = { morning: "#F59E0B", evening: "#8B5CF6", night: "#3B82F6", custom: "#10B981" }
-  return colors[type] || "#10B981"
-}
-
-const calculateHours = (start, end, breakMin = 0) => {
-  if (!start || !end) return 0
-  const [sh, sm] = start.split(":").map(Number)
-  const [eh, em] = end.split(":").map(Number)
-  let h = eh - sh + (em - sm) / 60
-  if (h < 0) h += 24
-  return Math.max(0, h - breakMin / 60)
-}
-
-const calculatePay = (shift, hourlyRate, nightMultiplier) => {
-  const hours = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
-  const multiplier = shift.shiftType === "night" ? nightMultiplier : 1
-  return hours * hourlyRate * multiplier
-}
+import { loadSettings, calculateHours, calculatePay, getShiftTypeColor } from "@/lib/shiftUtils"
+import BottomNav from "@/components/BottomNav"
 
 export default function ShiftsScreen() {
   const router = useRouter()
@@ -58,7 +27,7 @@ export default function ShiftsScreen() {
     { icon: <AiOutlineSetting size={22}/>, label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
   ]
 
-  // ✅ يجلب فقط ورديات المستخدم الحالي
+  // Fetch shifts from Firestore for the current user
   const fetchShifts = async (uid) => {
     if (!uid) return
     try {
@@ -226,18 +195,9 @@ export default function ShiftsScreen() {
           </div>
         )}
       </div>
-
-      <div style={{
-        position: "fixed", bottom: 0, left: 0, right: 0, backgroundColor: "#1c2132",
-        display: "flex", justifyContent: "space-around", padding: "10px 0 14px", borderTop: "1px solid #2a2f3e"
-      }}>
-        {tabs.map((item, index) => (
-          <div key={index} onClick={() => router.push(item.path)} style={{ textAlign: "center", cursor: "pointer", padding: "4px 12px" }}>
-            <div style={{ color: item.label === "Shifts" ? "#3B82F6" : "#6b7280", marginBottom: "3px" }}>{item.icon}</div>
-            <p style={{ fontSize: "10px", color: item.label === "Shifts" ? "#3B82F6" : "#6b7280" }}>{item.label}</p>
-          </div>
-        ))}
-      </div>
+        {/* Bottom Nav */}
+            <BottomNav />
+      
     </div>
   )
 }
