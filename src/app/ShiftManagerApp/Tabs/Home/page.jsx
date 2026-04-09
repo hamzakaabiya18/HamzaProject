@@ -85,7 +85,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
   refreshSettings()
-    // ✅ يقرأ الاسم من localStorage أولاً
+    //  يقرأ الاسم من localStorage اولا، إذا كان موجودًا يستخدمه، وإذا لم يكن موجودًا ينتظر حتى يتم جلب بيانات المستخدم من Firebase ثم يحفظ الاسم في localStorage
 
   const savedName = localStorage.getItem("userName")
   if (savedName) setUserName(savedName)
@@ -314,7 +314,7 @@ export default function HomeScreen() {
         {/* Pie Chart */}
         {showPie && (
           <div style={{ backgroundColor: "#1c2132", borderRadius: "20px", padding: "20px", marginBottom: "20px", border: "1px solid #2a2f3e" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "white", marginBottom: "4px" }}>🥧 Shift Breakdown</h3>
+            <h3 style={{ fontSize: "16px", fontWeight: "600", color: "white", marginBottom: "4px" }}>Shift Breakdown</h3>
             <p style={{ color: "#9ca3af", fontSize: "12px", marginBottom: "16px" }}>Distribution by shift type</p>
             {pieData.length > 0 ? (
               <>
