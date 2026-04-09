@@ -1,5 +1,5 @@
-export const SETTINGS_KEY = "shiftmanager_settings"
 
+export const SETTINGS_KEY = "shiftmanager_settings"
 export const defaultSettings = {
   hourlyRate: 50,
   overtimeRate: 1.5,

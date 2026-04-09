@@ -22,6 +22,9 @@ export default function Registration() {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
+      if (currentUser) {
+      window.location.href = "/ShiftManagerApp/Tabs/Home"
+    }
     })
     return () => unsub()
   }, [])
@@ -52,38 +55,26 @@ export default function Registration() {
   }
 
   const handleRegister = async (e) => {
-    e.preventDefault()
-    if (!regEmail || !regPassword) return alert("Please fill: email, password")
-    try {
-      setLoading(true)
-
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
-
-      // Save display name in Firebase Auth profile     
-      await updateProfile(userCredential.user, {
-        displayName: regName
-      })
-
-      // Save display name in localStorage for later use
-      localStorage.setItem("userName", regName)
-
-      // Save user info in Realtime Database
-      await set(ref(database, "users/" + userCredential.user.uid), {
-        fullName: regName,
-        email: regEmail,
-      })
-
-      alert("Account created successfully!")
-      setPanelActive(false)
-    } catch (err) {
-      alert(err?.message || "Register failed")
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+  if (!regEmail || !regPassword) return alert("Please fill: email, password")
+  try {
+    setLoading(true)
+    const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+    await updateProfile(userCredential.user, { displayName: regName })
+    localStorage.setItem("userName", regName)
+    await set(ref(database, "users/" + userCredential.user.uid), {
+      fullName: regName,
+      email: regEmail,
+    })
+    window.location.href = "/ShiftManagerApp/Tabs/Home"
+  } catch (err) {
+    alert(err?.message || "Register failed")
+  } finally {
+    setLoading(false)
   }
+}
 
-  if (user) {
+    if (user) {
     return (
       <div className="page">
         <div className="auth-wrapper" style={{ maxWidth: 650, minHeight: 350 }}>
@@ -149,7 +140,7 @@ export default function Registration() {
           </form>
         </div>
 
-        {/* LOGIN */}
+        {/* LOGIN Accounts */}
         <div className="auth-form-box login-form-box">
           <form onSubmit={handleLogin}>
             <h1>Sign In</h1>
@@ -179,7 +170,7 @@ export default function Registration() {
               onChange={(e) => setLoginPassword(e.target.value)}
               required
             />
-            <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
+             <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign In"}
             </button>
