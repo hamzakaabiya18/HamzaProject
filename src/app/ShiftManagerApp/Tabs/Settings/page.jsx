@@ -1,10 +1,5 @@
 "use client"
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import {
-  AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList,
-  AiOutlineDollar, AiOutlineSetting
-} from "react-icons/ai"
 import { BsTrash, BsPerson, BsClock, BsBell, BsCalendar3, BsInfoCircle, BsCheckLg, BsMoonStars } from "react-icons/bs"
 import { db } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
@@ -12,7 +7,6 @@ import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib
 import BottomNav from "@/components/BottomNav"
 
 export default function SettingsScreen() {
-  const router = useRouter()
   const [settings, setSettings] = useState(defaultSettings)
   const [hourlyRate, setHourlyRate] = useState("50")
   const [overtimeRate, setOvertimeRate] = useState("1.5")
@@ -27,13 +21,7 @@ export default function SettingsScreen() {
     setOvertimeRate(s.overtimeRate.toString())
   }, [])
 
-  const tabs = [
-    { icon: <AiOutlineHome size={22} />, label: "Home", path: "/ShiftManagerApp/Tabs/Home" },
-    { icon: <AiOutlineCalendar size={22} />, label: "Calendar", path: "/ShiftManagerApp/Tabs/Calendar" },
-    { icon: <AiOutlineUnorderedList size={22} />, label: "Shifts", path: "/ShiftManagerApp/Tabs/Shifts" },
-    { icon: <AiOutlineDollar size={22} />, label: "Salary", path: "/ShiftManagerApp/Tabs/Salary" },
-    { icon: <AiOutlineSetting size={22} />, label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
-  ]
+  
 
   const handleSaveRates = () => {
     const hr = parseFloat(hourlyRate)
