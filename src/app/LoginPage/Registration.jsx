@@ -55,24 +55,36 @@ export default function Registration() {
   }
 
   const handleRegister = async (e) => {
-  e.preventDefault()
-  if (!regEmail || !regPassword) return alert("Please fill: email, password")
-  try {
-    setLoading(true)
-    const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
-    await updateProfile(userCredential.user, { displayName: regName })
-    localStorage.setItem("userName", regName)
-    await set(ref(database, "users/" + userCredential.user.uid), {
-      fullName: regName,
-      email: regEmail,
-    })
-    window.location.href = "/ShiftManagerApp/Tabs/Home"
-  } catch (err) {
-    alert(err?.message || "Register failed")
-  } finally {
-    setLoading(false)
+    e.preventDefault()
+    if (!regEmail || !regPassword) return alert("Please fill: email, password")
+    try {
+      setLoading(true)
+
+      // Create user with email and password
+      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+
+      // Save display name in Firebase Auth profile     
+      await updateProfile(userCredential.user, {
+        displayName: regName
+      })
+
+      // Save display name in localStorage for later use
+      localStorage.setItem("userName", regName)
+
+      // Save user info in Realtime Database
+      await set(ref(database, "users/" + userCredential.user.uid), {
+        fullName: regName,
+        email: regEmail,
+      })
+
+      alert("Account created successfully!")
+      setPanelActive(false)
+    } catch (err) {
+      alert(err?.message || "Register failed")
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
     if (user) {
     return (
