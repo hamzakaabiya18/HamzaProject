@@ -142,7 +142,7 @@ export default function SalaryScreen() {
             <p style={{ color: "#4B5563", fontSize: "15px" }}>No shifts yet</p>
             <p onClick={() => router.push("/ShiftManagerApp/Tabs/AddShift")}
               style={{ color: "#3B82F6", cursor: "pointer", fontWeight: "600", marginTop: "8px" }}>
-              Add your first shift →
+              Add your first shift +
             </p>
           </div>
         ) : (

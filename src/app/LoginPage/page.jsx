@@ -6,34 +6,25 @@ import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWith
 import { ref, set } from "firebase/database"
 
 export default function Registration() {
-
   const [panelActive, setPanelActive] = useState(false)
-  const [user, setUser] = useState(null)
-
+  const [authChecked, setAuthChecked] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
-
   const [regName, setRegName] = useState("")
   const [regEmail, setRegEmail] = useState("")
   const [regPassword, setRegPassword] = useState("")
-
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser)
       if (currentUser) {
-      window.location.href = "/ShiftManagerApp/Tabs/Home"
-    }
+        window.location.replace("/ShiftManagerApp/Tabs/Home")
+      } else {
+        setAuthChecked(true)
+      }
     })
     return () => unsub()
   }, [])
-
-  const handleSignOut = async () => {
-    await signOut(auth)
-    localStorage.removeItem("userName")
-    alert("User signed out!")
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -41,16 +32,12 @@ export default function Registration() {
     try {
       setLoading(true)
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
-
-      // 
       const displayName = userCredential.user.displayName
       if (displayName) localStorage.setItem("userName", displayName)
-
-      window.location.href = "/ShiftManagerApp/Tabs/Home"
+      window.location.replace("/ShiftManagerApp/Tabs/Home")
     } catch (err) {
-      alert(err?.message || "Login failed")
-    } finally {
       setLoading(false)
+      alert(err?.message || "Login failed")
     }
   }
 
@@ -59,45 +46,24 @@ export default function Registration() {
     if (!regEmail || !regPassword) return alert("Please fill: email, password")
     try {
       setLoading(true)
-
-      // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
-
-      // Save display name in Firebase Auth profile     
-      await updateProfile(userCredential.user, {
-        displayName: regName
-      })
-
-      // Save display name in localStorage for later use
+      await updateProfile(userCredential.user, { displayName: regName })
       localStorage.setItem("userName", regName)
-
-      // Save user info in Realtime Database
       await set(ref(database, "users/" + userCredential.user.uid), {
         fullName: regName,
         email: regEmail,
       })
-
-      alert("Account created successfully!")
-      setPanelActive(false)
+      window.location.replace("/ShiftManagerApp/Tabs/Home")
     } catch (err) {
-      alert(err?.message || "Register failed")
-    } finally {
       setLoading(false)
+      alert(err?.message || "Register failed")
     }
   }
 
-    if (user) {
+  if (!authChecked) {
     return (
-      <div className="page">
-        <div className="auth-wrapper" style={{ maxWidth: 650, minHeight: 350 }}>
-          <div style={{ width: "100%", padding: 40, textAlign: "center" }}>
-            <h1 style={{ marginBottom: 10 }}>Welcome</h1>
-            <p style={{ marginTop: 10, marginBottom: 25 }}>
-              You are logged in as <b>{user.email}</b>
-            </p>
-            <button onClick={handleSignOut}>Sign Out</button>
-          </div>
-        </div>
+      <div className="page" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#6b7280", fontSize: "16px" }}>Loading...</p>
       </div>
     )
   }
@@ -122,26 +88,9 @@ export default function Registration() {
               </a>
             </div>
             <span>or use your email for registration</span>
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={regName}
-              onChange={(e) => setRegName(e.target.value)}
-            />
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={regEmail}
-              onChange={(e) => setRegEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={regPassword}
-              onChange={(e) => setRegPassword(e.target.value)}
-              required
-            />
+            <input type="text" placeholder="Full Name" value={regName} onChange={(e) => setRegName(e.target.value)} />
+            <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
+            <input type="password" placeholder="Password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required />
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign Up"}
             </button>
@@ -152,7 +101,7 @@ export default function Registration() {
           </form>
         </div>
 
-        {/* LOGIN Accounts */}
+        {/* LOGIN */}
         <div className="auth-form-box login-form-box">
           <form onSubmit={handleLogin}>
             <h1>Sign In</h1>
@@ -168,21 +117,9 @@ export default function Registration() {
               </a>
             </div>
             <span>Use your account</span>
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              required
-            />
-             <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
+            <input type="email" placeholder="Email Address" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required />
+            <input type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
+            <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign In"}
             </button>
@@ -193,47 +130,22 @@ export default function Registration() {
         </div>
 
         {/* SLIDE PANEL */}
-       <div className="slide-panel-wrapper">
-  <div className="slide-panel">
+        <div className="slide-panel-wrapper">
+          <div className="slide-panel">
+            <div className="panel-content panel-content-left">
+              <h2><b>Hey There!</b></h2>
+              <p>Join workers who manage<br/>their shifts smarter.<br/>Sign up and take control<br/>of your work life today.</p>
+              <button className="transparent-btn" type="button" onClick={() => setPanelActive(false)}>Sign In</button>
+            </div>
+            <div className="panel-content panel-content-right">
+              <h2><b>Welcome Back!</b></h2>
+              <p>Your shifts are waiting.<br/>Track hours · Calculate salary<br/>Stay on top of your schedule.</p>
+              <p><strong>Don't have an account? Click below</strong></p>
+              <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
+            </div>
+          </div>
+        </div>
 
-    <div className="panel-content panel-content-left">
-      <h2><b>Hey There!</b></h2>
-      <p>
-        Join workers who manage<br/>
-        their shifts smarter.<br/>
-        Sign up and take control<br/>
-        of your work life today.
-      </p>
-      <button
-        className="transparent-btn"
-        type="button"
-        onClick={() => setPanelActive(false)}
-      >
-        Sign In
-      </button>
-    </div>
-
-    <div className="panel-content panel-content-right">
-      <h2><b>Welcome Back!</b></h2>
-      <p>
-        Your shifts are waiting.<br/>
-        Track hours · Calculate salary<br/>
-        Stay on top of your schedule.
-      </p>
-      <p>
-        <strong>Don't have an account? Click below</strong>
-      </p>
-      <button
-        className="transparent-btn" 
-        type="button"
-        onClick={() => setPanelActive(true)}
-      >
-        Sign Up
-      </button>
-    </div>
-
-  </div>
-</div>
       </div>
       <p className="made-by">
         <b>made by<strong> hamza_abo_said</strong></b>

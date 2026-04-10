@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList, AiOutlineDollar, AiOutlineSetting } from "react-icons/ai"
 import { BsPencilSquare } from "react-icons/bs"
 import { HiTrendingUp, HiPlus, HiChevronRight } from "react-icons/hi"
 import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
@@ -114,7 +113,6 @@ export default function HomeScreen() {
   }
 }, [])
 
-
   const now = new Date()
   const today = now.toISOString().split("T")[0]
   const todayShift = shifts.find(s => s.date === today)
@@ -167,14 +165,7 @@ export default function HomeScreen() {
     { name: "Custom",  value: shiftTypeCounts.custom,  color: "#10B981", percent: Math.round(shiftTypeCounts.custom / total * 100) },
   ].filter(d => d.value > 0)
 
-  const tabs = [
-    { icon: <AiOutlineHome size={22}/>, label: "Home", path: "/ShiftManagerApp/Tabs/Home" },
-    { icon: <AiOutlineCalendar size={22}/>, label: "Calendar", path: "/ShiftManagerApp/Tabs/Calendar" },
-    { icon: <AiOutlineUnorderedList size={22}/>, label: "Shifts", path: "/ShiftManagerApp/Tabs/Shifts" },
-    { icon: <AiOutlineDollar size={22}/>, label: "Salary", path: "/ShiftManagerApp/Tabs/Salary" },
-    { icon: <AiOutlineSetting size={22}/>, label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
-  ]
-
+  
   return (
     <div style={{ backgroundColor: "#0f1117", minHeight: "100vh", color: "white", paddingBottom: "100px", fontFamily: "'Inter', sans-serif", overflowY: "auto" }}>
 

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Registration from "./LoginPage/Registration";
+import Registration from "./LoginPage/page";
 
 export default function Home() {
   return (

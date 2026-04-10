@@ -5,8 +5,11 @@ import { db } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
 import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
 import BottomNav from "@/components/BottomNav"
+import { auth } from "@/app/LoginPage/Firebase"
+import { signOut } from "firebase/auth"
 
 export default function SettingsScreen() {
+  const [userName, setUserName] = useState("")
   const [settings, setSettings] = useState(defaultSettings)
   const [hourlyRate, setHourlyRate] = useState("50")
   const [overtimeRate, setOvertimeRate] = useState("1.5")
@@ -15,13 +18,20 @@ export default function SettingsScreen() {
   const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
+    const savedName = localStorage.getItem("userName")
+    if (savedName) setUserName(savedName)
     const s = loadSettings()
     setSettings(s)
     setHourlyRate(s.hourlyRate.toString())
     setOvertimeRate(s.overtimeRate.toString())
   }, [])
 
-  
+  const handleSignOut = async () => {
+  if (!confirm("Are you sure you want to sign out?")) return
+  await signOut(auth)
+  localStorage.removeItem("userName")
+  window.location.replace("/LoginPage")
+}
 
   const handleSaveRates = () => {
     const hr = parseFloat(hourlyRate)
@@ -137,7 +147,7 @@ export default function SettingsScreen() {
             <BsPerson size={26} color="white" />
           </div>
           <div>
-            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>חמזה אבו סעייד</p>
+            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>{userName || "..."}</p>
             <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", marginTop: "2px" }}>Shift Manager</p>
           </div>
         </div>
@@ -345,9 +355,41 @@ export default function SettingsScreen() {
             </div>
           </button>
         </div>
-
+{/* Sign Out */}
+<div>
+  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="#4B5563" strokeWidth="2" strokeLinecap="round"/>
+      <polyline points="16,17 21,12 16,7" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="21" y1="12" x2="9" y2="12" stroke="#4B5563" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+    <p style={{ color: "#4B5563", fontSize: "12px", fontWeight: "600", letterSpacing: "1.5px", textTransform: "uppercase" }}>Account</p>
+  </div>
+  <button onClick={handleSignOut} style={{
+    width: "100%", padding: "18px 20px",
+    backgroundColor: "rgba(59,130,246,0.07)",
+    border: "1px solid rgba(59,130,246,0.2)",
+    borderRadius: "16px", cursor: "pointer",
+    display: "flex", alignItems: "center", gap: "14px", textAlign: "left"
+  }}>
+    <div style={{
+      width: "40px", height: "40px", borderRadius: "10px",
+      backgroundColor: "rgba(59,130,246,0.1)",
+      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+    }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+        <polyline points="16,17 21,12 16,7" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <line x1="21" y1="12" x2="9" y2="12" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <p style={{ color: "#3B82F6", fontWeight: "700", fontSize: "14px" }}>Sign Out</p>
+      <p style={{ color: "rgba(59,130,246,0.6)", fontSize: "12px", marginTop: "2px" }}>Log out from your account</p>
+    </div>
+  </button>
+</div>
       </div>
-
       {/* Bottom Nav */}
       <BottomNav />
     </div>
