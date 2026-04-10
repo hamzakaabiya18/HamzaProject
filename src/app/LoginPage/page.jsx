@@ -1,9 +1,9 @@
 "use client"
 import { useEffect, useState } from "react"
 import "./style.css"
-import { auth, database } from "./Firebase"
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
-import { ref, set } from "firebase/database"
+import { auth , database } from "./Firebase"
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
+
 
 export default function Registration() {
   const [panelActive, setPanelActive] = useState(false)
@@ -42,23 +42,20 @@ export default function Registration() {
   }
 
   const handleRegister = async (e) => {
-    e.preventDefault()
-    if (!regEmail || !regPassword) return alert("Please fill: email, password")
-    try {
-      setLoading(true)
-      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
-      await updateProfile(userCredential.user, { displayName: regName })
-      localStorage.setItem("userName", regName)
-      await set(ref(database, "users/" + userCredential.user.uid), {
-        fullName: regName,
-        email: regEmail,
-      })
-      window.location.replace("/ShiftManagerApp/Tabs/Home")
-    } catch (err) {
-      setLoading(false)
-      alert(err?.message || "Register failed")
-    }
+  e.preventDefault()
+  if (!regEmail || !regPassword) return alert("Please fill: email, password")
+  try {
+    setLoading(true)
+    const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+    await updateProfile(userCredential.user, { displayName: regName })
+    localStorage.setItem("userName", regName)
+    alert("Account created successfully! Welcome" + regName)
+    window.location.replace("/ShiftManagerApp/Tabs/Home")
+  } catch (err) {
+    setLoading(false)
+    alert(err?.message || "Register failed")
   }
+}
 
   if (!authChecked) {
     return (
@@ -139,8 +136,8 @@ export default function Registration() {
             </div>
             <div className="panel-content panel-content-right">
               <h2><b>Welcome Back!</b></h2>
-              <p>Your shifts are waiting.<br/>Track hours · Calculate salary<br/>Stay on top of your schedule.</p>
-              <p><strong>Don't have an account? Click below</strong></p>
+              <p>Your shifts are waiting.<br/>Track hours · Calculate salary<br/>Stay on top of your schedule.
+              <br/>Don't have an account? Click below</p>
               <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </div>

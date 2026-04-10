@@ -173,7 +173,7 @@ export default function CalendarScreen() {
                 weekday: "long", month: "long", day: "numeric"
               })}
             </h3>
-            {/* ✅ زر + يفتح AddShift مع التاريخ */}
+            {/* Add Shift Button */}
             <div onClick={handleAddShiftForDate} style={{
               backgroundColor: "#3B82F6", borderRadius: "50%",
               width: "36px", height: "36px", display: "flex",
