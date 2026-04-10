@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import "./style.css"
-import { auth , database } from "./Firebase"
+import { auth } from "./Firebase"
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
 
