@@ -6,6 +6,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndP
 
 
 export default function Registration() {
+  {/* State variables for auth panel, form inputs, loading state, and auth check */}
   const [panelActive, setPanelActive] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
@@ -15,18 +16,18 @@ export default function Registration() {
   const [regPassword, setRegPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (currentUser) => {
+  useEffect(() => {  // Check auth state on mount || Redirect to Home if logged in || Show auth forms if not || Cleanup listener on unmount || Handle login & registration
+    const unsub = onAuthStateChanged(auth, (currentUser) => { 
       if (currentUser) {
-        window.location.replace("/ShiftManagerApp/Tabs/Home")
+        window.location.replace("/ShiftManagerApp/Tabs/Home") //href to HomeScreen
       } else {
         setAuthChecked(true)
       }
     })
-    return () => unsub()
+    return () => unsub() // unsub = listener cleanup
   }, [])
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e) => { // Button handler for login form submission || Validate inputs || Sign in with Firebase Auth || Store display name in localStorage || Redirect to Home on success || Show error on failure
     e.preventDefault()
     if (!loginEmail || !loginPassword) return alert("Please fill email & password")
     try {
@@ -116,7 +117,7 @@ export default function Registration() {
             <span>Use your account</span>
             <input type="email" placeholder="Email Address" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required />
             <input type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required />
-            <a href="#" onClick={(e) => e.preventDefault()}>Forgot your password?</a>
+            <a href="#" onClick={(e) => e.preventDefault()}>Don't have an account? Click Sign Up</a>
             <button type="submit" disabled={loading}>
               {loading ? "Loading..." : "Sign In"}
             </button>

@@ -1,10 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import {
-  AiOutlineHome, AiOutlineCalendar, AiOutlineUnorderedList,
-  AiOutlineDollar, AiOutlineSetting
-} from "react-icons/ai"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
@@ -33,14 +29,6 @@ export default function SalaryScreen() {
   const [selectedMonth, setSelectedMonth] = useState(null)
   const [hourlyRate, setHourlyRate] = useState(50)
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
-
-  const tabs = [
-    { icon: <AiOutlineHome size={22} />, label: "Home", path: "/ShiftManagerApp/Tabs/Home" },
-    { icon: <AiOutlineCalendar size={22} />, label: "Calendar", path: "/ShiftManagerApp/Tabs/Calendar" },
-    { icon: <AiOutlineUnorderedList size={22} />, label: "Shifts", path: "/ShiftManagerApp/Tabs/Shifts" },
-    { icon: <AiOutlineDollar size={22} />, label: "Salary", path: "/ShiftManagerApp/Tabs/Salary" },
-    { icon: <AiOutlineSetting size={22} />, label: "Settings", path: "/ShiftManagerApp/Tabs/Settings" },
-  ]
 
   useEffect(() => {
   const s = loadSettings()
