@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
 import "./style.css"
-import { auth } from "./Firebase"
+import { db , auth } from "@/app/LoginPage/Firebase"
+import { collection, addDoc } from "firebase/firestore"
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
 
@@ -48,9 +49,18 @@ export default function Registration() {
   try {
     setLoading(true)
     const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+    
+    // Save name in Firebase Auth
     await updateProfile(userCredential.user, { displayName: regName })
-    await userCredential.user.reload()
-    // Forces Firebase to refresh the user object with the new displayName
+    
+    // Save name in Firestore for cross-device access
+    await addDoc(collection(db, "users"), {
+      uid: userCredential.user.uid,
+      fullName: regName,
+      email: regEmail,
+      createdAt: new Date().toISOString()
+    })
+    
     localStorage.setItem("userName", regName)
     alert("Account created successfully! Welcome " + regName)
     window.location.replace("/ShiftManagerApp/Tabs/Home")

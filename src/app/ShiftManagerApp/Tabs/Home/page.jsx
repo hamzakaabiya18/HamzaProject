@@ -14,8 +14,6 @@ import {
   CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell
 } from "recharts"
 
-
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -58,23 +56,38 @@ export default function HomeScreen() {
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
   const [showPie, setShowPie] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
-  // User name state to hold the display name of the user
   const [userName, setUserName] = useState("")
 
+  const fetchUserName = async (uid) => {
+    // First try Firestore users collection
+    try {
+      const q = query(collection(db, "users"), where("uid", "==", uid))
+      const snapshot = await getDocs(q)
+      if (!snapshot.empty) {
+        const name = snapshot.docs[0].data().fullName
+        if (name) {
+          setUserName(name)
+          localStorage.setItem("userName", name)
+          return
+        }
+      }
+    } catch (e) { console.error(e) }
+  }
+
   const fetchShifts = async (uid) => {
-  if (!uid) return
-  try {
-    const q = query(
-      collection(db, "shifts"),
-      where("userId", "==", uid),
-      orderBy("date", "desc")
-    )
-    const snapshot = await getDocs(q)
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    setShifts(data)
-  } catch (e) { console.error(e) }
-  setLoading(false)
-}
+    if (!uid) return
+    try {
+      const q = query(
+        collection(db, "shifts"),
+        where("userId", "==", uid),
+        orderBy("date", "desc")
+      )
+      const snapshot = await getDocs(q)
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      setShifts(data)
+    } catch (e) { console.error(e) }
+    setLoading(false)
+  }
 
   const refreshSettings = () => {
     const s = loadSettings()
@@ -83,31 +96,41 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
-  refreshSettings()
-    //  يقرأ الاسم من localStorage اولا، إذا كان موجودًا يستخدمه، وإذا لم يكن موجودًا ينتظر حتى يتم جلب بيانات المستخدم من Firebase ثم يحفظ الاسم في localStorage
-
-  const unsub = onAuthStateChanged(auth, (user) => {
-  if (user) {
-    setCurrentUser(user)
-    fetchShifts(user.uid)
-    const name = user.displayName || localStorage.getItem("userName") || ""
-    setUserName(name)
-    if (name) localStorage.setItem("userName", name)
-  } else {
-    router.push("/LoginPage")
-  }
-})
-
-  const handleFocus = () => {
     refreshSettings()
-    if (currentUser) fetchShifts(currentUser.uid)
-  }
-  window.addEventListener("focus", handleFocus)
-  return () => {
-    window.removeEventListener("focus", handleFocus)
-    unsub()
-  }
-}, [])
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user)
+        fetchShifts(user.uid)
+
+        // Priority 1: Firebase Auth displayName
+        if (user.displayName) {
+          setUserName(user.displayName)
+          localStorage.setItem("userName", user.displayName)
+        } else {
+          // Priority 2: Firestore users collection
+          await fetchUserName(user.uid)
+
+          // Priority 3: localStorage fallback
+          if (!userName) {
+            const saved = localStorage.getItem("userName")
+            if (saved) setUserName(saved)
+          }
+        }
+      } else {
+        router.push("/LoginPage")
+      }
+    })
+
+    const handleFocus = () => {
+      refreshSettings()
+      if (currentUser) fetchShifts(currentUser.uid)
+    }
+    window.addEventListener("focus", handleFocus)
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      unsub()
+    }
+  }, [])
 
   const now = new Date()
   const today = now.toISOString().split("T")[0]
@@ -161,14 +184,12 @@ export default function HomeScreen() {
     { name: "Custom",  value: shiftTypeCounts.custom,  color: "#10B981", percent: Math.round(shiftTypeCounts.custom / total * 100) },
   ].filter(d => d.value > 0)
 
-  
   return (
     <div style={{ backgroundColor: "#0f1117", minHeight: "100vh", color: "white", paddingBottom: "100px", fontFamily: "'Inter', sans-serif", overflowY: "auto" }}>
 
       {/* Header */}
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
-        {/* fullName saved in localStorage */}
         <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "left" }}>
           {userName || "..."}
         </h1>
@@ -420,7 +441,6 @@ export default function HomeScreen() {
 
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav />
     </div>
   )
