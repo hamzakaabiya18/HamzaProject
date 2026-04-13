@@ -52,7 +52,7 @@ export default function Registration() {
     
     // Save name in Firebase Auth
     await updateProfile(userCredential.user, { displayName: regName })
-    
+
     // Save name in Firestore for cross-device access
     await addDoc(collection(db, "users"), {
       uid: userCredential.user.uid,

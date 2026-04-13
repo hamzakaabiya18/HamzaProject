@@ -58,21 +58,6 @@ export default function HomeScreen() {
   const [currentUser, setCurrentUser] = useState(null)
   const [userName, setUserName] = useState("")
 
-  const fetchUserName = async (uid) => {
-    // First try Firestore users collection
-    try {
-      const q = query(collection(db, "users"), where("uid", "==", uid))
-      const snapshot = await getDocs(q)
-      if (!snapshot.empty) {
-        const name = snapshot.docs[0].data().fullName
-        if (name) {
-          setUserName(name)
-          localStorage.setItem("userName", name)
-          return
-        }
-      }
-    } catch (e) { console.error(e) }
-  }
 
   const fetchShifts = async (uid) => {
     if (!uid) return
@@ -95,42 +80,33 @@ export default function HomeScreen() {
     setNightMultiplier(s.nightMultiplier)
   }
 
-  useEffect(() => {
-    refreshSettings()
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        setCurrentUser(user)
-        fetchShifts(user.uid)
+ useEffect(() => {
+  refreshSettings()
 
-        // Priority 1: Firebase Auth displayName
-        if (user.displayName) {
-          setUserName(user.displayName)
-          localStorage.setItem("userName", user.displayName)
-        } else {
-          // Priority 2: Firestore users collection
-          await fetchUserName(user.uid)
-
-          // Priority 3: localStorage fallback
-          if (!userName) {
-            const saved = localStorage.getItem("userName")
-            if (saved) setUserName(saved)
-          }
-        }
-      } else {
-        router.push("/LoginPage")
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setCurrentUser(user)
+      fetchShifts(user.uid)
+      
+      // Get name from Firebase Auth profile
+      if (user.displayName) {
+        setUserName(user.displayName)
       }
-    })
+    } else {
+      router.push("/LoginPage")
+    }
+  })
 
-    const handleFocus = () => {
-      refreshSettings()
-      if (currentUser) fetchShifts(currentUser.uid)
-    }
-    window.addEventListener("focus", handleFocus)
-    return () => {
-      window.removeEventListener("focus", handleFocus)
-      unsub()
-    }
-  }, [])
+  const handleFocus = () => {
+    refreshSettings()
+    if (currentUser) fetchShifts(currentUser.uid)
+  }
+  window.addEventListener("focus", handleFocus)
+  return () => {
+    window.removeEventListener("focus", handleFocus)
+    unsub()
+  }
+}, [])
 
   const now = new Date()
   const today = now.toISOString().split("T")[0]
