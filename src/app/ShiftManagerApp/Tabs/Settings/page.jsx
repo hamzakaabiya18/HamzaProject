@@ -18,13 +18,19 @@ export default function SettingsScreen() {
   const [showConfirm, setShowConfirm] = useState(false)
 
   useEffect(() => {
+  // Get name from Firebase Auth directly — works on all devices
+  const currentUser = auth.currentUser
+  if (currentUser?.displayName) {
+    setUserName(currentUser.displayName)
+  } else {
     const savedName = localStorage.getItem("userName")
     if (savedName) setUserName(savedName)
-    const s = loadSettings()
-    setSettings(s)
-    setHourlyRate(s.hourlyRate.toString())
-    setOvertimeRate(s.overtimeRate.toString())
-  }, [])
+  }
+  const s = loadSettings()
+  setSettings(s)
+  setHourlyRate(s.hourlyRate.toString())
+  setOvertimeRate(s.overtimeRate.toString())
+}, [])
 
   const handleSignOut = async () => {
   if (!confirm("Are you sure you want to sign out?")) return
