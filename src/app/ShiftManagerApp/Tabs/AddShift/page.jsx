@@ -1,4 +1,5 @@
-"use client"
+"use client" // Tells Next.js this file runs in the browser (not on the server)
+// Required because we use hooks, events, and browser APIs like localStorage
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { db, auth } from "@/app/LoginPage/Firebase"
@@ -61,7 +62,7 @@ function MiniCalendar({ day, month, year, onSelect }) {
               transition: "all 0.15s"
             }}>{d}</div>
           )
-        })}
+        })} 
       </div>
       <div onClick={() => onSelect(today.getDate(), today.getMonth() + 1, today.getFullYear())}
         style={{ marginTop: "12px", textAlign: "center", cursor: "pointer", color: "#3B82F6", fontSize: "12px", fontWeight: "600", padding: "8px", backgroundColor: "#1c2132", borderRadius: "10px" }}>

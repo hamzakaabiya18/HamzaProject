@@ -86,21 +86,18 @@ export default function HomeScreen() {
   refreshSettings()
     //  يقرأ الاسم من localStorage اولا، إذا كان موجودًا يستخدمه، وإذا لم يكن موجودًا ينتظر حتى يتم جلب بيانات المستخدم من Firebase ثم يحفظ الاسم في localStorage
 
-  const savedName = localStorage.getItem("userName")
-  if (savedName) setUserName(savedName)
-
   const unsub = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setCurrentUser(user)
-      fetchShifts(user.uid)
-      if (!savedName && user.displayName) {
-        setUserName(user.displayName)
-        localStorage.setItem("userName", user.displayName)
-      }
-    } else {
-      router.push("/LoginPage")
+  if (user) {
+    setCurrentUser(user)
+    fetchShifts(user.uid)
+    if (user.displayName) {
+      setUserName(user.displayName)
+      localStorage.setItem("userName", user.displayName)
     }
-  })
+  } else {
+    router.push("/LoginPage")
+  }
+})
 
   const handleFocus = () => {
     refreshSettings()
