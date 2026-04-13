@@ -6,6 +6,8 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
 import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
 import BottomNav from "@/components/BottomNav"
 import { auth } from "@/app/LoginPage/Firebase"
+import { collection, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore"
+import { onAuthStateChanged, signOut } from "firebase/auth"
 import { onAuthStateChanged, signOut } from "firebase/auth"
 import { signOut } from "firebase/auth"
 
@@ -19,20 +21,27 @@ export default function SettingsScreen() {
   const [showConfirm, setShowConfirm] = useState(false)
 
  useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, async (user) => { //
+  // Get name from Firestore — works with ALL languages
+  const unsub = onAuthStateChanged(auth, async (user) => {
     if (user) {
-      await user.reload()
-      const fresh = auth.currentUser
-      if (fresh?.displayName) {
-        setUserName(fresh.displayName)
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid))
+        if (userDoc.exists()) {
+          setUserName(userDoc.data().fullName)
+        } else if (user.displayName) {
+          setUserName(user.displayName)
+        }
+      } catch (e) {
+        if (user.displayName) setUserName(user.displayName)
       }
     }
   })
+
   const s = loadSettings()
   setSettings(s)
   setHourlyRate(s.hourlyRate.toString())
   setOvertimeRate(s.overtimeRate.toString())
-  return () => unsubscribe()
+  return () => unsub()
 }, [])
 
   const handleSignOut = async () => {

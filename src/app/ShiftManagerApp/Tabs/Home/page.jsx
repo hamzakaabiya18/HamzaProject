@@ -5,7 +5,8 @@ import { BsPencilSquare } from "react-icons/bs"
 import { HiTrendingUp, HiPlus, HiChevronRight } from "react-icons/hi"
 import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
 import { loadSettings, calculateHours, calculatePay, getShiftTypeColor } from "@/lib/shiftUtils"
-import BottomNav from "@/components/BottomNav"
+import { BottomNav } from "@/components/BottomNav"
+import { collection, getDocs, query, orderBy, where, doc, getDoc } from "firebase/firestore"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
@@ -82,32 +83,26 @@ export default function HomeScreen() {
 
  useEffect(() => {
   refreshSettings()
-
   const unsub = onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    setCurrentUser(user)
-    fetchShifts(user.uid)
-    
-    // Reload user to get fresh displayName
-    await user.reload()
-    const freshUser = auth.currentUser
-    
-    if (freshUser?.displayName) {
-      setUserName(freshUser.displayName)
-    } else {
-      // Fallback: get from Firestore
+    if (user) {
+      setCurrentUser(user)
+      fetchShifts(user.uid)
+
+      // Get name from Firestore — works with ALL languages
       try {
-        const q = query(collection(db, "users"), where("uid", "==", user.uid))
-        const snap = await getDocs(q)
-        if (!snap.empty) {
-          setUserName(snap.docs[0].data().fullName)
+        const userDoc = await getDoc(doc(db, "users", user.uid))
+        if (userDoc.exists()) {
+          setUserName(userDoc.data().fullName)
+        } else if (user.displayName) {
+          setUserName(user.displayName)
         }
-      } catch (e) { console.error(e) }
+      } catch (e) {
+        if (user.displayName) setUserName(user.displayName)
+      }
+    } else {
+      router.push("/LoginPage")
     }
-  } else {
-    router.push("/LoginPage")
-  }
-})
+  })
 
   const handleFocus = () => {
     refreshSettings()

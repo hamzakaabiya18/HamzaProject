@@ -1,13 +1,11 @@
 "use client"
 import { useEffect, useState } from "react"
 import "./style.css"
-import { db , auth } from "@/app/LoginPage/Firebase"
-import { collection, addDoc } from "firebase/firestore"
+import { db, auth } from "@/app/LoginPage/Firebase"
+import { doc, setDoc } from "firebase/firestore"
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
-
 export default function Registration() {
-  {/* State variables for auth panel, form inputs, loading state, and auth check */}
   const [panelActive, setPanelActive] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
   const [loginEmail, setLoginEmail] = useState("")
@@ -17,25 +15,23 @@ export default function Registration() {
   const [regPassword, setRegPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {  // Check auth state on mount || Redirect to Home if logged in || Show auth forms if not || Cleanup listener on unmount || Handle login & registration
-    const unsub = onAuthStateChanged(auth, (currentUser) => { 
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        window.location.replace("/ShiftManagerApp/Tabs/Home") //href to HomeScreen
+        window.location.replace("/ShiftManagerApp/Tabs/Home")
       } else {
         setAuthChecked(true)
       }
     })
-    return () => unsub() // unsub = listener cleanup
+    return () => unsub()
   }, [])
 
-  const handleLogin = async (e) => { // Button handler for login form submission || Validate inputs || Sign in with Firebase Auth || Store display name in localStorage || Redirect to Home on success || Show error on failure
+  const handleLogin = async (e) => {
     e.preventDefault()
     if (!loginEmail || !loginPassword) return alert("Please fill email & password")
     try {
       setLoading(true)
-      const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
-      const displayName = userCredential.user.displayName
-      if (displayName) localStorage.setItem("userName", displayName)
+      await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
       window.location.replace("/ShiftManagerApp/Tabs/Home")
     } catch (err) {
       setLoading(false)
@@ -44,31 +40,37 @@ export default function Registration() {
   }
 
   const handleRegister = async (e) => {
-  e.preventDefault()
-  if (!regEmail || !regPassword) return alert("Please fill: email, password")
-  try {
-    setLoading(true)
-    const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
-    
-    await updateProfile(userCredential.user, { displayName: regName })
-    
-    // Force reload user to ensure displayName is updated
-    await auth.currentUser.reload()
-    
-    // Save in Firestore as backup
-    await addDoc(collection(db, "users"), {
-      uid: userCredential.user.uid,
-      fullName: regName,
-      email: regEmail,
-    })
-    
-    localStorage.setItem("userName", regName)
-    window.location.replace("/ShiftManagerApp/Tabs/Home")
-  } catch (err) {
-    setLoading(false)
-    alert(err?.message || "Register failed")
+    e.preventDefault()
+    if (!regEmail || !regPassword) return alert("Please fill: email, password")
+    if (!regName.trim()) return alert("Please enter your full name")
+    try {
+      setLoading(true)
+      const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
+      const uid = userCredential.user.uid
+
+      // Save name in Firestore using uid as document ID
+      // This works with ALL languages: Arabic, Hebrew, English
+      await setDoc(doc(db, "users", uid), {
+        uid: uid,
+        fullName: regName.trim(),
+        email: regEmail,
+        createdAt: new Date().toISOString()
+      })
+
+      // Try to save in Firebase Auth too (may not work with Arabic/Hebrew)
+      try {
+        await updateProfile(userCredential.user, { displayName: regName.trim() })
+      } catch (e) {
+        console.log("displayName update failed, using Firestore instead")
+      }
+
+      window.location.replace("/ShiftManagerApp/Tabs/Home")
+    } catch (err) {
+      setLoading(false)
+      alert(err?.message || "Register failed")
+    }
   }
-}
+
   if (!authChecked) {
     return (
       <div className="page" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -143,13 +145,12 @@ export default function Registration() {
           <div className="slide-panel">
             <div className="panel-content panel-content-left">
               <h2><b>Hey There!</b></h2>
-              <p>Join workers who manage<br/>their shifts smarter.<br/>Sign up and take control<br/>of your work life today.</p>
+              <p>Join workers who manage their shifts smarter. Sign up and take control of your work life today.</p>
               <button className="transparent-btn" type="button" onClick={() => setPanelActive(false)}>Sign In</button>
             </div>
             <div className="panel-content panel-content-right">
               <h2><b>Welcome Back!</b></h2>
-              <p>Your shifts are waiting.<br/>Track hours · Calculate salary<br/>Stay on top of your schedule.
-              <br/>Don't have an account? Click below</p>
+              <p>Your shifts are waiting. Track hours · Calculate salary. Stay on top of your schedule. Don't have an account? Click below</p>
               <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </div>
