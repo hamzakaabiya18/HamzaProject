@@ -49,15 +49,16 @@ export default function Registration() {
     setLoading(true)
     const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
     await updateProfile(userCredential.user, { displayName: regName })
+    await userCredential.user.reload()
+    // Forces Firebase to refresh the user object with the new displayName
     localStorage.setItem("userName", regName)
-    alert("Account created successfully! Welcome" + regName)
+    alert("Account created successfully! Welcome " + regName)
     window.location.replace("/ShiftManagerApp/Tabs/Home")
   } catch (err) {
     setLoading(false)
     alert(err?.message || "Register failed")
   }
 }
-
   if (!authChecked) {
     return (
       <div className="page" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
