@@ -83,19 +83,31 @@ export default function HomeScreen() {
  useEffect(() => {
   refreshSettings()
 
-  const unsub = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      setCurrentUser(user)
-      fetchShifts(user.uid)
-      
-      // Get name from Firebase Auth profile
-      if (user.displayName) {
-        setUserName(user.displayName)
-      }
+  const unsub = onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    setCurrentUser(user)
+    fetchShifts(user.uid)
+    
+    // Reload user to get fresh displayName
+    await user.reload()
+    const freshUser = auth.currentUser
+    
+    if (freshUser?.displayName) {
+      setUserName(freshUser.displayName)
     } else {
-      router.push("/LoginPage")
+      // Fallback: get from Firestore
+      try {
+        const q = query(collection(db, "users"), where("uid", "==", user.uid))
+        const snap = await getDocs(q)
+        if (!snap.empty) {
+          setUserName(snap.docs[0].data().fullName)
+        }
+      } catch (e) { console.error(e) }
     }
-  })
+  } else {
+    router.push("/LoginPage")
+  }
+})
 
   const handleFocus = () => {
     refreshSettings()

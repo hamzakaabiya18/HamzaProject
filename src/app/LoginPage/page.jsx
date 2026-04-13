@@ -50,19 +50,19 @@ export default function Registration() {
     setLoading(true)
     const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
     
-    // Save name in Firebase Auth
     await updateProfile(userCredential.user, { displayName: regName })
-
-    // Save name in Firestore for cross-device access
+    
+    // Force reload user to ensure displayName is updated
+    await auth.currentUser.reload()
+    
+    // Save in Firestore as backup
     await addDoc(collection(db, "users"), {
       uid: userCredential.user.uid,
       fullName: regName,
       email: regEmail,
-      createdAt: new Date().toISOString()
     })
     
     localStorage.setItem("userName", regName)
-    alert("Account created successfully! Welcome " + regName)
     window.location.replace("/ShiftManagerApp/Tabs/Home")
   } catch (err) {
     setLoading(false)
