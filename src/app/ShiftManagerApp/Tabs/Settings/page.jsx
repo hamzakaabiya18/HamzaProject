@@ -6,6 +6,7 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
 import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
 import BottomNav from "@/components/BottomNav"
 import { auth } from "@/app/LoginPage/Firebase"
+import { onAuthStateChanged, signOut } from "firebase/auth"
 import { signOut } from "firebase/auth"
 
 export default function SettingsScreen() {
@@ -17,19 +18,21 @@ export default function SettingsScreen() {
   const [clearing, setClearing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  useEffect(() => {
-  // Get name from Firebase Auth directly — works on all devices
-  const currentUser = auth.currentUser
-  if (currentUser?.displayName) {
-    setUserName(currentUser.displayName)
-  } else {
-    const savedName = localStorage.getItem("userName")
-    if (savedName) setUserName(savedName)
-  }
+ useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => { //
+    if (user) {
+      await user.reload()
+      const fresh = auth.currentUser
+      if (fresh?.displayName) {
+        setUserName(fresh.displayName)
+      }
+    }
+  })
   const s = loadSettings()
   setSettings(s)
   setHourlyRate(s.hourlyRate.toString())
   setOvertimeRate(s.overtimeRate.toString())
+  return () => unsubscribe()
 }, [])
 
   const handleSignOut = async () => {
