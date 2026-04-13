@@ -90,10 +90,9 @@ export default function HomeScreen() {
   if (user) {
     setCurrentUser(user)
     fetchShifts(user.uid)
-    if (user.displayName) {
-      setUserName(user.displayName)
-      localStorage.setItem("userName", user.displayName)
-    }
+    const name = user.displayName || localStorage.getItem("userName") || ""
+    setUserName(name)
+    if (name) localStorage.setItem("userName", name)
   } else {
     router.push("/LoginPage")
   }
