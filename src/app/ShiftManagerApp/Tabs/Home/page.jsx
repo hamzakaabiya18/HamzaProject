@@ -83,25 +83,31 @@ export default function HomeScreen() {
  useEffect(() => {
   refreshSettings()
   const unsub = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      setCurrentUser(user)
-      fetchShifts(user.uid)
-
-      // 
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid))
-        if (userDoc.exists()) {
-          setUserName(userDoc.data().fullName)
-        } else if (user.displayName) {
-          setUserName(user.displayName)
-        }
-      } catch (e) {
-        if (user.displayName) setUserName(user.displayName)
-      }
-    } else {
-      router.push("/LoginPage")
+  if (user) {
+    setCurrentUser(user)
+    fetchShifts(user.uid)
+    
+    // Priority 1: displayName from Firebase Auth
+    if (user.displayName) {
+      setUserName(user.displayName)
+      return
     }
-  })
+    
+    // Priority 2: localStorage
+    const saved = localStorage.getItem("userName")
+    if (saved) {
+      setUserName(saved)
+      return
+    }
+    
+    // Priority 3: use email as fallback
+    if (user.email) {
+      setUserName(user.email.split("@")[0])
+    }
+  } else {
+    router.push("/LoginPage")
+  }
+})
 
   const handleFocus = () => {
     refreshSettings()

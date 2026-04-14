@@ -17,8 +17,7 @@ export default function SettingsScreen() {
   const [showConfirm, setShowConfirm] = useState(false)
 
   
- useEffect(() => { 
-  // Get name from Firestore — works with ALL languages
+useEffect(() => { 
   const unsub = onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
@@ -33,7 +32,6 @@ export default function SettingsScreen() {
       }
     }
   })
-
   const s = loadSettings()
   setSettings(s)
   setHourlyRate(s.hourlyRate.toString())
