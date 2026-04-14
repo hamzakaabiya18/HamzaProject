@@ -8,7 +8,6 @@ import { loadSettings, calculateHours, calculatePay } from "@/lib/shiftUtils"
 import BottomNav from "@/components/BottomNav"
 import ExportExcel from "@/components/ExportExcel"
 
-
 const getMonthKey = (dateStr) => {
   const d = new Date(dateStr + "T00:00:00")
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
@@ -32,30 +31,29 @@ export default function SalaryScreen() {
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
 
   useEffect(() => {
-  const s = loadSettings()
-  setHourlyRate(s.hourlyRate)
-  setNightMultiplier(s.nightMultiplier)
+    const s = loadSettings()
+    setHourlyRate(s.hourlyRate)
+    setNightMultiplier(s.nightMultiplier)
 
-  const unsub = onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const q = query(
-          collection(db, "shifts"),
-          where("userId", "==", user.uid),
-          orderBy("date", "desc")
-        )
-        const snapshot = await getDocs(q)
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-        setShifts(data)
-      } catch (e) { console.error(e) }
-      setLoading(false)
-    } else {
-      router.push("/LoginPage")
-    }
-  })
-  return () => unsub()
-}, [])
-
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const q = query(
+            collection(db, "shifts"),
+            where("userId", "==", user.uid),
+            orderBy("date", "desc")
+          )
+          const snapshot = await getDocs(q)
+          const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+          setShifts(data)
+        } catch (e) { console.error(e) }
+        setLoading(false)
+      } else {
+        router.push("/LoginPage")
+      }
+    })
+    return () => unsub()
+  }, [])
 
   const monthlyData = {}
   shifts.forEach(shift => {
@@ -65,7 +63,6 @@ export default function SalaryScreen() {
   })
 
   const sortedMonths = Object.keys(monthlyData).sort((a, b) => b.localeCompare(a))
-
   const totalPayAll = shifts.reduce((sum, s) => sum + calculatePay(s, hourlyRate, nightMultiplier), 0)
   const totalHoursAll = shifts.reduce((sum, s) => sum + calculateHours(s.startTime, s.endTime, s.breakDuration || 0), 0)
   const totalShifts = shifts.length
@@ -83,13 +80,6 @@ export default function SalaryScreen() {
           Salary
         </h1>
       </div>
-
-<ExportExcel
-  monthKey={month}
-  shifts={mShifts}
-  hourlyRate={hourlyRate}
-  nightMultiplier={nightMultiplier}
-/>
 
       {/* Summary Card */}
       <div style={{ padding: "20px 20px 0" }}>
@@ -116,7 +106,6 @@ export default function SalaryScreen() {
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", marginBottom: "4px" }}>Rate</p>
               <p style={{ color: "white", fontWeight: "700", fontSize: "16px" }}>₪{hourlyRate}/hr</p>
             </div>
-            {/*  Night rate badge */}
             <div>
               <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", marginBottom: "4px" }}>🌙 Night</p>
               <p style={{ color: "#93C5FD", fontWeight: "700", fontSize: "16px" }}>{Math.round(nightMultiplier * 100)}%</p>
@@ -146,28 +135,41 @@ export default function SalaryScreen() {
             {sortedMonths.map(month => {
               const mShifts = monthlyData[month]
               const mHours = mShifts.reduce((sum, s) => sum + calculateHours(s.startTime, s.endTime, s.breakDuration || 0), 0)
-              const mPay   = mShifts.reduce((sum, s) => sum + calculatePay(s, hourlyRate, nightMultiplier), 0)
+              const mPay = mShifts.reduce((sum, s) => sum + calculatePay(s, hourlyRate, nightMultiplier), 0)
               const isOpen = selectedMonth === month
 
               return (
                 <div key={month}>
-                  <div onClick={() => setSelectedMonth(isOpen ? null : month)} style={{
-                    backgroundColor: isOpen ? "#111827" : "#0f1520",
-                    borderRadius: isOpen ? "16px 16px 0 0" : "16px",
-                    padding: "18px 20px",
-                    border: `1px solid ${isOpen ? "#1d4ed8" : "#1f2937"}`,
-                    borderBottom: isOpen ? "none" : undefined,
-                    cursor: "pointer",
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    transition: "all 0.2s"
-                  }}>
+                  <div
+                    onClick={() => setSelectedMonth(isOpen ? null : month)}
+                    style={{
+                      backgroundColor: isOpen ? "#111827" : "#0f1520",
+                      borderRadius: isOpen ? "16px 16px 0 0" : "16px",
+                      padding: "18px 20px",
+                      border: `1px solid ${isOpen ? "#1d4ed8" : "#1f2937"}`,
+                      borderBottom: isOpen ? "none" : undefined,
+                      cursor: "pointer",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                      transition: "all 0.2s"
+                    }}
+                  >
                     <div>
                       <p style={{ fontWeight: "700", fontSize: "16px", marginBottom: "4px" }}>{formatMonth(month)}</p>
                       <p style={{ color: "#4B5563", fontSize: "12px" }}>{mShifts.length} shifts · {mHours.toFixed(1)}h</p>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <p style={{ color: "#3B82F6", fontWeight: "800", fontSize: "18px" }}>₪{mPay.toFixed(0)}</p>
-                      <p style={{ color: "#4B5563", fontSize: "11px", marginTop: "2px" }}>{isOpen ? "▲ Hide" : "▼ Details"}</p>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      {/* Export Button */}
+                      <ExportExcel
+                        monthKey={month}
+                        shifts={mShifts}
+                        hourlyRate={hourlyRate}
+                        nightMultiplier={nightMultiplier}
+                      />
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ color: "#3B82F6", fontWeight: "800", fontSize: "18px" }}>₪{mPay.toFixed(0)}</p>
+                        <p style={{ color: "#4B5563", fontSize: "11px", marginTop: "2px" }}>{isOpen ? "▲ Hide" : "▼ Details"}</p>
+                      </div>
                     </div>
                   </div>
 
@@ -192,7 +194,7 @@ export default function SalaryScreen() {
                       <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
                         {mShifts.map(shift => {
                           const hours = calculateHours(shift.startTime, shift.endTime, shift.breakDuration || 0)
-                          const pay   = calculatePay(shift, hourlyRate, nightMultiplier)
+                          const pay = calculatePay(shift, hourlyRate, nightMultiplier)
                           const color = SHIFT_TYPE_COLORS[shift.shiftType] || "#10B981"
                           const isNight = shift.shiftType === "night"
                           return (
@@ -207,7 +209,6 @@ export default function SalaryScreen() {
                                 </p>
                                 <p style={{ color: "#4B5563", fontSize: "11px", marginTop: "2px" }}>
                                   {shift.startTime} – {shift.endTime} · {hours.toFixed(1)}h
-                                  {/* Night Shift Indicator */}
                                   {isNight && <span style={{ color: "#3B82F6", marginLeft: "6px" }}>🌙 ×{nightMultiplier}</span>}
                                 </p>
                               </div>
@@ -237,7 +238,6 @@ export default function SalaryScreen() {
         )}
       </div>
 
-      {/* Bottom Nav */}
       <BottomNav />
     </div>
   )
