@@ -6,6 +6,7 @@ import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
 import { onAuthStateChanged } from "firebase/auth"
 import { loadSettings, calculateHours, calculatePay } from "@/lib/shiftUtils"
 import BottomNav from "@/components/BottomNav"
+import ExportExcel from "@/components/ExportExcel"
 
 
 const getMonthKey = (dateStr) => {
@@ -82,6 +83,13 @@ export default function SalaryScreen() {
           Salary
         </h1>
       </div>
+
+<ExportExcel
+  monthKey={month}
+  shifts={mShifts}
+  hourlyRate={hourlyRate}
+  nightMultiplier={nightMultiplier}
+/>
 
       {/* Summary Card */}
       <div style={{ padding: "20px 20px 0" }}>
