@@ -99,7 +99,11 @@ export default function Registration() {
               </a>
             </div>
             <span>or use your email for registration</span>
-            <input type="text" placeholder="Full Name" value={regName} onChange={(e) => setRegName(e.target.value)} />
+            <input type="text"
+             placeholder="Full Name"
+              value={regName}
+               onChange={(e) => setRegName(e.target.value)} /> //
+
             <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
             <input type="password" placeholder="Password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required />
             <button type="submit" disabled={loading}>

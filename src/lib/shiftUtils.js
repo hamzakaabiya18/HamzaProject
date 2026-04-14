@@ -7,20 +7,20 @@ export const defaultSettings = {
   calendarSync: false,
   notifications: false,
 }
-
+// Load settings from localStorage, with fallback to defaults
 export const loadSettings = () => {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
-    return raw ? { ...defaultSettings, ...JSON.parse(raw) } : defaultSettings
+    return raw ? { ...defaultSettings, ...JSON.parse(raw) } : defaultSettings // JSON.parse handles Arabic/Hebrew correctly, no need for special decoding
   } catch {
     return defaultSettings
   }
 }
 
 export const saveSettings = (s) => {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)) // JSON.stringify handles Arabic/Hebrew correctly, no need for special encoding
 }
-
+// Utility functions for shift calculations and settings management
 export const calculateHours = (start, end, breakMin = 0) => {
   if (!start || !end) return 0
   const [sh, sm] = start.split(":").map(Number)

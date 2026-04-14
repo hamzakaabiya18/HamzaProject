@@ -79,7 +79,7 @@ function AddShiftForm() {
   const isEditMode = !!editId
 
   const [hourlyRate,      setHourlyRate]      = useState(50)
-  const [nightMultiplier, setNightMultiplier] = useState(1.25)
+  const [nightMultiplier, setNightMultiplier] = useState(1.5)
   const [currentUser,     setCurrentUser]     = useState(null)
   const today = new Date()
 
@@ -127,7 +127,7 @@ function AddShiftForm() {
 
   const hours = calculateHours(startTime, endTime, parseInt(breakDuration) || 0)
   const multiplier = selectedType.value === "night" ? nightMultiplier : 1
-  const previewPay = hours * hourlyRate * multiplier
+  const previewPay = hours * hourlyRate * multiplier 
 
   const selectedDateLabel = (() => {
     try {

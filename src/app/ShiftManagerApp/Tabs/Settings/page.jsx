@@ -1,15 +1,11 @@
 "use client"
 import { useState, useEffect } from "react"
 import { BsTrash, BsPerson, BsClock, BsBell, BsCalendar3, BsInfoCircle, BsCheckLg, BsMoonStars } from "react-icons/bs"
-import { db } from "@/app/LoginPage/Firebase"
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
-import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
-import BottomNav from "@/components/BottomNav"
-import { auth } from "@/app/LoginPage/Firebase"
+import { db, auth } from "@/app/LoginPage/Firebase"
 import { collection, getDocs, deleteDoc, doc, getDoc } from "firebase/firestore"
 import { onAuthStateChanged, signOut } from "firebase/auth"
-import { onAuthStateChanged, signOut } from "firebase/auth"
-import { signOut } from "firebase/auth"
+import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib/shiftUtils"
+import BottomNav from "@/components/BottomNav"
 
 export default function SettingsScreen() {
   const [userName, setUserName] = useState("")
@@ -19,8 +15,10 @@ export default function SettingsScreen() {
   const [saved, setSaved] = useState(false)
   const [clearing, setClearing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [regEmail, setRegEmail] = useState("")
 
- useEffect(() => {
+
+ useEffect(() => { 
   // Get name from Firestore — works with ALL languages
   const unsub = onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -69,7 +67,7 @@ export default function SettingsScreen() {
     saveSettings(updated)
   }
 
-  // ✅ تغيير نسبة وردية الليل
+
   const handleNightMultiplier = (val) => {
     const updated = { ...settings, nightMultiplier: val }
     setSettings(updated)
@@ -165,7 +163,7 @@ export default function SettingsScreen() {
             <BsPerson size={26} color="white" />
           </div>
           <div>
-            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>{userName || "..."}</p>
+            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>{userName || "regName"}</p>
             <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", marginTop: "2px" }}>Shift Manager</p>
           </div>
         </div>

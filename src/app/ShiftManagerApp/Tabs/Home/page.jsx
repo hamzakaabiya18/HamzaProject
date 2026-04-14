@@ -5,11 +5,10 @@ import { BsPencilSquare } from "react-icons/bs"
 import { HiTrendingUp, HiPlus, HiChevronRight } from "react-icons/hi"
 import { MdOutlineAttachMoney, MdOutlineCalendarMonth } from "react-icons/md"
 import { loadSettings, calculateHours, calculatePay, getShiftTypeColor } from "@/lib/shiftUtils"
-import { BottomNav } from "@/components/BottomNav"
+import  BottomNav  from "@/components/BottomNav"
 import { collection, getDocs, query, orderBy, where, doc, getDoc } from "firebase/firestore"
 import { db, auth } from "@/app/LoginPage/Firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { collection, getDocs, query, orderBy, where } from "firebase/firestore"
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell
@@ -58,6 +57,7 @@ export default function HomeScreen() {
   const [showPie, setShowPie] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
   const [userName, setUserName] = useState("")
+  const [regEmail, setRegEmail] = useState("")
 
 
   const fetchShifts = async (uid) => {
@@ -88,7 +88,7 @@ export default function HomeScreen() {
       setCurrentUser(user)
       fetchShifts(user.uid)
 
-      // Get name from Firestore — works with ALL languages
+      // 
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
@@ -132,7 +132,7 @@ export default function HomeScreen() {
   const monthHours = monthShifts.reduce((acc, s) => acc + calculateHours(s.startTime, s.endTime, s.breakDuration || 0), 0)
   const monthPay   = monthShifts.reduce((acc, s) => acc + calculatePay(s, hourlyRate, nightMultiplier), 0)
 
-  const nextWeekStr = new Date(now.getTime() + 7 * 86400000).toISOString().split("T")[0]
+  const nextWeekStr = new Date(now.getTime() + 7 * 86400000).toISOString().split("T")[0] // 86400000 = 1 day in ms
   const upcomingShifts = shifts
     .filter(s => s.date >= today && s.date <= nextWeekStr)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -174,7 +174,7 @@ export default function HomeScreen() {
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
         <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "left" }}>
-          {userName || "..."}
+          {userName || "regName"}
         </h1>
         <p style={{ color: "#9ca3af", fontSize: "13px", marginBottom: "20px" }}>
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
