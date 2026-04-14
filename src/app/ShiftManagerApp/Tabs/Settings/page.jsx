@@ -8,16 +8,15 @@ import { SETTINGS_KEY, defaultSettings, loadSettings, saveSettings } from "@/lib
 import BottomNav from "@/components/BottomNav"
 
 export default function SettingsScreen() {
-  //const [userName, setUserName] = useState("")
+  const [userName, setUserName] = useState("")
   const [settings, setSettings] = useState(defaultSettings)
   const [hourlyRate, setHourlyRate] = useState("50")
   const [overtimeRate, setOvertimeRate] = useState("1.5")
   const [saved, setSaved] = useState(false)
   const [clearing, setClearing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [regName, setRegName] = useState("")
 
-
+  
  useEffect(() => { 
   // Get name from Firestore — works with ALL languages
   const unsub = onAuthStateChanged(auth, async (user) => {
@@ -25,12 +24,12 @@ export default function SettingsScreen() {
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
-          setRegName(userDoc.data().fullName)
+          setUserName(userDoc.data().fullName)
         } else if (user.displayName) {
-          setRegName(user.displayName)
+          setUserName(user.displayName)
         }
       } catch (e) {
-        if (user.displayName) setRegName(user.displayName)
+        if (user.displayName) setUserName(user.displayName)
       }
     }
   })
@@ -45,7 +44,7 @@ export default function SettingsScreen() {
   const handleSignOut = async () => {
   if (!confirm("Are you sure you want to sign out?")) return
   await signOut(auth)
-  localStorage.removeItem("regName")
+  localStorage.removeItem("userName")
   window.location.replace("/LoginPage")
 }
 
@@ -163,7 +162,7 @@ export default function SettingsScreen() {
             <BsPerson size={26} color="white" />
           </div>
           <div>
-            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>{ regName || "..."}</p>
+            <p style={{ color: "white", fontWeight: "700", fontSize: "17px" }}>{userName || "..."}</p>
             <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", marginTop: "2px" }}>Shift Manager</p>
           </div>
         </div>

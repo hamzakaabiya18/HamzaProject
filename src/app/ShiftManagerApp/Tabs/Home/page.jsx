@@ -56,8 +56,8 @@ export default function HomeScreen() {
   const [nightMultiplier, setNightMultiplier] = useState(1.25)
   const [showPie, setShowPie] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
-  //const [userName, setUserName] = useState("")
-  const [regName, setRegName] = useState("")
+  const [userName, setUserName] = useState("")
+
 
   const fetchShifts = async (uid) => {
     if (!uid) return
@@ -91,12 +91,12 @@ export default function HomeScreen() {
       try {
         const userDoc = await getDoc(doc(db, "users", user.uid))
         if (userDoc.exists()) {
-          setRegName(userDoc.data().fullName)
+          setUserName(userDoc.data().fullName)
         } else if (user.displayName) {
-          setRegName(user.displayName)
+          setUserName(user.displayName)
         }
       } catch (e) {
-        if (user.displayName) setRegName(user.displayName)
+        if (user.displayName) setUserName(user.displayName)
       }
     } else {
       router.push("/LoginPage")
@@ -173,7 +173,7 @@ export default function HomeScreen() {
       <div style={{ padding: "24px 16px 0px" }}>
         <p style={{ color: "#9ca3af", fontSize: "14px", marginBottom: "4px" }}>Welcome back,</p>
         <h1 style={{ fontSize: "30px", fontWeight: "700", color: "white", marginBottom: "4px", textAlign: "left" }}>
-          { regName }
+          {userName || "..."}
         </h1>
         <p style={{ color: "#9ca3af", fontSize: "13px", marginBottom: "20px" }}>
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
