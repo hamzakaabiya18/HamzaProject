@@ -28,35 +28,36 @@ export default function Registration() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
+    if (!loginEmail || !loginPassword) return alert("Please fill email & password")
     try {
       setLoading(true)
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
       window.location.replace("/ShiftManagerApp/Tabs/Home")
-      alert("The Login is successful")
     } catch (err) {
       setLoading(false)
       alert(err?.message || "Login failed")
     }
-    
   }
 
   const handleRegister = async (e) => {
     e.preventDefault()
+    if (!regEmail || !regPassword) return alert("Please fill: email, password")
+    if (!regName.trim()) return alert("Please enter your full name")
     try {
       setLoading(true)
       const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
       const uid = userCredential.user.uid
 
       // Save name in Firestore using uid as document ID
-      // This works with ALL languages
+      // This works with ALL languages: Arabic, Hebrew, English
       await setDoc(doc(db, "users", uid), {
         uid: uid,
         fullName: regName.trim(),
-        email: regEmail, 
+        email: regEmail,
         createdAt: new Date().toISOString()
       })
 
-      // Try to save in Firebase Auth too
+      // Try to save in Firebase Auth too (may not work with Arabic/Hebrew)
       try {
         await updateProfile(userCredential.user, { displayName: regName.trim() })
       } catch (e) {
@@ -98,11 +99,7 @@ export default function Registration() {
               </a>
             </div>
             <span>or use your email for registration</span>
-            <input type="text"
-             placeholder="Full Name"
-              value={regName}
-               onChange={(e) => setRegName(e.target.value)} />
-
+            <input type="text" placeholder="Full Name" value={regName} onChange={(e) => setRegName(e.target.value)} />
             <input type="email" placeholder="Email Address" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
             <input type="password" placeholder="Password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required />
             <button type="submit" disabled={loading}>
@@ -153,7 +150,7 @@ export default function Registration() {
             </div>
             <div className="panel-content panel-content-right">
               <h2><b>Welcome Back!</b></h2>
-              <p>Your shifts are waiting. Track hours · Calculate salary. Stay on top of your schedule.</p>
+              <p>Your shifts are waiting. Track hours · Calculate salary. Stay on top of your schedule. Don't have an account? Click below</p>
               <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </div>
