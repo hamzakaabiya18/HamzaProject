@@ -49,11 +49,11 @@ export default function Registration() {
       const uid = userCredential.user.uid
 
       // Save name in Firestore using uid as document ID
-      // This works with ALL languages: Arabic, Hebrew, English
+      // This works with ALL languages
       await setDoc(doc(db, "users", uid), {
         uid: uid,
         fullName: regName.trim(),
-        email: regEmail,
+        email: regEmail, 
         createdAt: new Date().toISOString()
       })
 
