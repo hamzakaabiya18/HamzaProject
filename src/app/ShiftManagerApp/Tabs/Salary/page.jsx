@@ -159,6 +159,8 @@ export default function SalaryScreen() {
                     </div>
 
                     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+
+
                       {/* Export Button */}
                       <ExportExcel
                         monthKey={month}
@@ -166,13 +168,14 @@ export default function SalaryScreen() {
                         hourlyRate={hourlyRate}
                         nightMultiplier={nightMultiplier}
                       />
+
+
                       <div style={{ textAlign: "right" }}>
                         <p style={{ color: "#3B82F6", fontWeight: "800", fontSize: "18px" }}>₪{mPay.toFixed(0)}</p>
                         <p style={{ color: "#4B5563", fontSize: "11px", marginTop: "2px" }}>{isOpen ? "▲ Hide" : "▼ Details"}</p>
                       </div>
                     </div>
                   </div>
-
                   {isOpen && (
                     <div style={{
                       backgroundColor: "#111827", borderRadius: "0 0 16px 16px",

@@ -154,7 +154,7 @@ export default function Registration() {
             </div>
             <div className="panel-content panel-content-right">
               <h2><b>Welcome Back!</b></h2>
-              <p>Your shifts are waiting. Track hours · Calculate salary. Stay on top of your schedule. Don't have an account? Click below</p>
+              <p>Your shifts are waiting. Track hours · Calculate salary. Stay on top of your schedule.</p>
               <button className="transparent-btn" type="button" onClick={() => setPanelActive(true)}>Sign Up</button>
             </div>
           </div>

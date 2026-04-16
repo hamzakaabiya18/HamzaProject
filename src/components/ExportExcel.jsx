@@ -1,5 +1,5 @@
 "use client"
-import * as XLSX from "xlsx"
+import * as XLSX from "xlsx-js-style"
 import { saveAs } from "file-saver"
 import { calculateHours, calculatePay } from "@/lib/shiftUtils"
 
@@ -49,9 +49,22 @@ export default function ExportExcel({ monthKey, shifts, hourlyRate, nightMultipl
     })
 
     const ws = XLSX.utils.json_to_sheet(rows)
+    // Make TOTAL row bold
+    const totalRowIndex = rows.length - 1 // last row
+    const cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
+    cols.forEach(col => {
+     const cellRef = `${col}${totalRowIndex + 1}` // +1 because Excel is 1-indexed
+      if (ws[cellRef]) {
+      ws[cellRef].s = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: "FFFF00" } } // yellow background
+    }
+  }
+})
+
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, monthName)
-    const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" })
+    const buffer = XLSX.write(wb, { bookType: "xlsx", type: "array" , cellStyles: true })
     const blob = new Blob([buffer], { type: "application/octet-stream" })
     saveAs(blob, `Salary_${monthKey}.xlsx`)
   }
