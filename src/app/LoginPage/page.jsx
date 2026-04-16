@@ -28,21 +28,20 @@ export default function Registration() {
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    if (!loginEmail || !loginPassword) return alert("Please fill email & password")
     try {
       setLoading(true)
       await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
       window.location.replace("/ShiftManagerApp/Tabs/Home")
+      alert("The Login is successful")
     } catch (err) {
       setLoading(false)
       alert(err?.message || "Login failed")
     }
+    
   }
 
   const handleRegister = async (e) => {
     e.preventDefault()
-    if (!regEmail || !regPassword) return alert("Please fill: email, password")
-    if (!regName.trim()) return alert("Please enter your full name")
     try {
       setLoading(true)
       const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword)
@@ -57,9 +56,10 @@ export default function Registration() {
         createdAt: new Date().toISOString()
       })
 
-      // Try to save in Firebase Auth too (may not work with Arabic/Hebrew)
+      // Try to save in Firebase Auth too
       try {
         await updateProfile(userCredential.user, { displayName: regName.trim() })
+        alert("The Registration is successful")
       } catch (e) {
         console.log("displayName update failed, using Firestore instead")
       }
