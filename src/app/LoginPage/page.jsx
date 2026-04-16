@@ -59,7 +59,6 @@ export default function Registration() {
       // Try to save in Firebase Auth too
       try {
         await updateProfile(userCredential.user, { displayName: regName.trim() })
-        alert("The Registration is successful")
       } catch (e) {
         console.log("displayName update failed, using Firestore instead")
       }
